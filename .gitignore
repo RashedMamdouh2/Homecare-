@@ -4,4 +4,6 @@ obj/
 *.user
 *.suo
 *.vsidx
+appsettings*.json
+frontend/
 
