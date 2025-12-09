@@ -17,7 +17,8 @@ namespace Homecare.Model
         [Required]
         public string City { get; set; }
         [Required]
-        public byte[] Image { get; set; }
+       
+        public byte [] Image { get; set; }
         public List<Appointment> Appointements { get; set; }
         public List<Medication>Medications { get; set; }
         public Patient()
