@@ -1,0 +1,176 @@
+﻿using Homecare.DTO;
+using Homecare.Model;
+using Homecare.Repository;
+using Homecare.Services;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Buffers.Text;
+
+namespace Homecare.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class AppointmentsController : ControllerBase
+    {
+        private readonly IUnitOfWork unitOfWork;
+        private readonly IImageServices imageServices;
+        private readonly IPDFService pdfService;
+
+        public AppointmentsController(IUnitOfWork unitOfWork, IImageServices imageServices,IPDFService pdfService)
+        {
+            this.unitOfWork = unitOfWork;
+            this.imageServices = imageServices;
+            this.pdfService = pdfService;
+        }
+        [HttpGet("GetAppointment/{id:guid}")]
+        public async Task<IActionResult> GetAppointment(Guid id)
+        {
+            var AppointmentDB = await unitOfWork.Appointments.FindAsync(ap=>ap.Id==id,new string[] {nameof(Model.Appointment.Patient),nameof(Model.Appointment.Physician),nameof(Model.Appointment.Report)});
+           
+           
+            if (AppointmentDB == null)
+            {
+                return NotFound("Wrong ID");
+            }
+            var ReportDb = await unitOfWork.Reports.FindAsync(R => R.Id == AppointmentDB.Report.Id, new string[] { nameof(Report.Medications) });
+            var Appointment = new AppointmentSendDto
+            {
+                Id=AppointmentDB.Id,
+                StartTime = AppointmentDB.StartTime,
+                EndTime = AppointmentDB.EndTime,
+                MeetingAddress = AppointmentDB.MeetingAddress,
+                AppointmentDate = AppointmentDB.AppointmentDate,
+                PatientName = AppointmentDB.Patient.Name,
+                PhysicianName = AppointmentDB.Physician.Name,
+                PhysicianNotes = AppointmentDB.PhysicianNotes,
+                Medications = ReportDb.Medications.Select(Med => new MedicationSendAndCreateDto { Description = Med.Description, Name = Med.Name, Dose = Med.Dose ?? 0, DoseFrequency = Med.DoseFrequency ?? 0, UsageTimes = Med.UsageTimes }).ToList(),
+                PdfBase64=Convert.ToBase64String(ReportDb.Pdf)
+            };
+            return Ok(Appointment);
+        }
+        [HttpGet("GetAllAppointments")]
+        public IActionResult GetAllAppointments()
+        {
+
+            var Appointments = unitOfWork.Appointments.FindAll(app=>true,new string[] {nameof(Appointment.Patient),nameof(Appointment.Physician)}).OrderBy(p => p.AppointmentDate).Select(AppointmentDB => new AppointmentSendDto
+            {
+                Id = AppointmentDB.Id,
+                StartTime = AppointmentDB.StartTime,
+                EndTime = AppointmentDB.EndTime,
+                MeetingAddress = AppointmentDB.MeetingAddress,
+                AppointmentDate = AppointmentDB.AppointmentDate,
+                PatientName = AppointmentDB.Patient.Name,
+                PhysicianName = AppointmentDB.Physician.Name,
+                PhysicianNotes = AppointmentDB.PhysicianNotes,
+                
+
+            });
+            return Ok(Appointments);
+        }
+        [HttpPost("BookAppointment")]
+        public async Task<IActionResult> AddAppointment( AppointmentCreateDto AppointmentToBookDto)
+        {
+            var PhysicianAppointmentAtSameTime = await unitOfWork.Appointments.FindAsync(existedAppointment => 
+            existedAppointment.PhysicianId == AppointmentToBookDto.PhysicianId
+            &&existedAppointment.AppointmentDate==AppointmentToBookDto.AppointmentDate&& 
+            AppointmentToBookDto.StartTime < existedAppointment.EndTime &&
+            AppointmentToBookDto.EndTime > existedAppointment.StartTime
+        , new string[] { });
+           
+            if (PhysicianAppointmentAtSameTime is not null)
+            {
+                return BadRequest("This Physician Has an Appointment At The same time");
+            }
+            var PatientAppointmentAtSameTime = await unitOfWork.Appointments.FindAsync(existedAppointment => 
+            existedAppointment.PatientId == AppointmentToBookDto.PatientId
+            &&existedAppointment.AppointmentDate==AppointmentToBookDto.AppointmentDate&& 
+            AppointmentToBookDto.StartTime < existedAppointment.EndTime &&
+            AppointmentToBookDto.EndTime > existedAppointment.StartTime
+        , new string[] { });
+           
+            if (PatientAppointmentAtSameTime is not null)
+            {
+                return BadRequest("This Patient Has an Appointment At The same time");
+            }
+            var p = new Appointment
+            {
+                StartTime = AppointmentToBookDto.StartTime,
+                EndTime = AppointmentToBookDto.EndTime,
+                MeetingAddress = AppointmentToBookDto.MeetingAddress,
+                AppointmentDate = AppointmentToBookDto.AppointmentDate,
+                PhysicianNotes=AppointmentToBookDto.PhysicianNotes,
+                PatientId=AppointmentToBookDto.PatientId,
+                PhysicianId=AppointmentToBookDto.PhysicianId
+
+            };
+            await unitOfWork.Appointments.AddAsync(p);
+            await unitOfWork.SaveDbAsync();
+            return CreatedAtAction(nameof(GetAppointment), routeValues: new { id = p.Id }, AppointmentToBookDto);
+        }
+        [HttpDelete]
+        public async Task<IActionResult> RemoveAppointment(int id)
+        {
+            var Appointment = await unitOfWork.Appointments.GetById(id);
+            if (Appointment is null) return NotFound("Wrong ID");
+            unitOfWork.Appointments.Delete(Appointment);
+            await unitOfWork.SaveDbAsync();
+            return Ok();
+        }
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateAppointment(AppointmentCreateDto updated, int id)
+        {
+            var old = await unitOfWork.Appointments.GetById(id);
+            if (old is null) return NotFound("Wrong ID");
+            old.MeetingAddress = updated.MeetingAddress;
+            old.StartTime = updated.StartTime;
+            old.EndTime = updated.EndTime;
+            old.AppointmentDate = updated.AppointmentDate;
+            old.PatientId = updated.PatientId;
+            old.PhysicianId = updated.PhysicianId;
+            unitOfWork.Appointments.UpdateById(old);
+            await unitOfWork.SaveDbAsync();
+            return CreatedAtAction(nameof(GetAppointment), routeValues: new { id = old.Id }, updated);
+
+        }
+        [HttpPost("Add/Appointment/Report/{appointmentId}")]
+        public async Task<IActionResult> AddReport(ReportCreateDto reportToCreate,[FromRoute] Guid appointmentId)
+        {
+            var appointment = await unitOfWork.Appointments.FindAsync(app=>app.Id==appointmentId,new string[] { nameof(Appointment.Report)});
+            if (appointment is null) return NotFound("Wrong ID");
+            if(appointment.Report is not null) return BadRequest("This Appointment Already Has A Report");
+            var report = new Report
+            {
+                AppointmentId=appointment.Id,
+                Descritpion = reportToCreate.Descritpion,
+                PatientId = reportToCreate.PatientId,
+                PhysicianId = reportToCreate.PhysicianId,
+                Pdf=pdfService.CreateReportPDF(reportToCreate),
+                Medications = reportToCreate.Medications.Select(Md => new Medication 
+                { 
+                    Description = Md.Description,
+                    Dose = Md.Dose,
+                    DoseFrequency = Md.DoseFrequency,
+                    Name = Md.Name,
+                    UsageTimes = Md.UsageTimes,
+
+                    
+                }
+              
+                ).ToList()
+
+            };
+            await unitOfWork.Reports.AddAsync(report);
+            await unitOfWork.SaveDbAsync();
+            return CreatedAtAction(nameof(GetAppointment), routeValues:new
+            {
+                id=appointment.Id
+            }, new
+            {
+                PdfBase64 = Convert.ToBase64String(report.Pdf)
+        } );
+
+
+        }
+
+    }
+}
