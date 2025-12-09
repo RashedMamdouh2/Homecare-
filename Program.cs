@@ -1,21 +1,25 @@
 ﻿using Homecare.Model;
+using Homecare.Repository;
+using Homecare.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
 builder.Services.AddControllers();
+builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
+builder.Services.AddScoped<IImageServices,ImageServices>();
+builder.Services.AddScoped<IPDFService,PDFService>();
 
-// Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// DbContext
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("localconnection"))
 );
 
-// CORS (اختياري)
+
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("policy1", policy =>
@@ -28,12 +32,10 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+ 
+app.UseSwagger();
+app.UseSwaggerUI();
+
 
 app.UseHttpsRedirection();
 
