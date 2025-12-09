@@ -25,11 +25,11 @@ namespace Homecare.Repository
         }
         public IEnumerable<TEntity> GetAll()
         {
-            return DbSet;
+            return DbSet.AsNoTracking();
         }
         public async Task<TEntity> GetById(int id) 
         {
-            return await DbSet.FindAsync(id);
+            return (await DbSet.FindAsync(id));
         }
         public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter, string[] includes)
         {
@@ -38,11 +38,11 @@ namespace Homecare.Repository
             var query = DbSet.AsQueryable();
             foreach (var include in includes)
             {
-                query = query.Include(include);
+                query = query.Include(include).AsNoTracking();
 
 
             }
-
+            
             return await query.FirstOrDefaultAsync(ex);
         }
         public IEnumerable<TEntity> FindAll(Expression<Func<TEntity, bool>> filter, string[] includes, int take = -1, int skip = -1)
@@ -53,7 +53,7 @@ namespace Homecare.Repository
             var query = DbSet.AsQueryable();
             foreach (var include in includes)
             {
-                query = query.Include(include);
+                query = query.Include(include).AsNoTracking();
             }
             var res = query.Where(ex);
             if (take >= 0)
