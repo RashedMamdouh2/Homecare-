@@ -4,6 +4,7 @@ using Homecare.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Homecare.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251209200413_second mig")]
+    partial class secondmig
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -62,6 +65,8 @@ namespace Homecare.Migrations
                     b.HasIndex("PatientId");
 
                     b.HasIndex("PhysicianId");
+
+                    b.HasIndex("ReportId");
 
                     b.ToTable("Appointements");
                 });
@@ -180,9 +185,6 @@ namespace Homecare.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<Guid>("AppointmentId")
-                        .HasColumnType("uniqueidentifier");
-
                     b.Property<string>("Descritpion")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -198,9 +200,6 @@ namespace Homecare.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AppointmentId")
-                        .IsUnique();
 
                     b.HasIndex("PatientId");
 
@@ -244,9 +243,15 @@ namespace Homecare.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Homecare.Model.Report", "Report")
+                        .WithMany()
+                        .HasForeignKey("ReportId");
+
                     b.Navigation("Patient");
 
                     b.Navigation("Physician");
+
+                    b.Navigation("Report");
                 });
 
             modelBuilder.Entity("Homecare.Model.Medication", b =>
@@ -273,12 +278,6 @@ namespace Homecare.Migrations
 
             modelBuilder.Entity("Homecare.Model.Report", b =>
                 {
-                    b.HasOne("Homecare.Model.Appointment", "Appointment")
-                        .WithOne("Report")
-                        .HasForeignKey("Homecare.Model.Report", "AppointmentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Homecare.Model.Patient", "Patient")
                         .WithMany()
                         .HasForeignKey("PatientId")
@@ -291,16 +290,9 @@ namespace Homecare.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Appointment");
-
                     b.Navigation("Patient");
 
                     b.Navigation("Physician");
-                });
-
-            modelBuilder.Entity("Homecare.Model.Appointment", b =>
-                {
-                    b.Navigation("Report");
                 });
 
             modelBuilder.Entity("Homecare.Model.Patient", b =>

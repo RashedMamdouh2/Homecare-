@@ -23,7 +23,11 @@ namespace Homecare.Controllers
         public async Task<IActionResult> GetPatient(int id)
         {
             var patientDB = await unitOfWork.Patients.GetById(id);
+            if (patientDB == null) {
+                return NotFound("Wrong ID");
+            }
             var patient = new PatientSendDto {
+                Id=patientDB.Id,
                 Name = patientDB.Name,
                 Phone = patientDB.Phone,
                 Address = patientDB.Address,
@@ -32,9 +36,6 @@ namespace Homecare.Controllers
                 Image = imageServices.ConvertArrayToImage(patientDB.Image),
 
             };
-            if (patient == null) {
-                return NotFound("Wrong ID");
-            }
             return Ok(patient);
         }
         [HttpGet("GetAllPatients")]
@@ -42,6 +43,7 @@ namespace Homecare.Controllers
         {
 
             var patients = unitOfWork.Patients.GetAll().OrderBy(p => p.Name).Select(p => new PatientSendDto {
+                Id = p.Id, 
                 Name = p.Name,
                 Phone = p.Phone,
                 Address = p.Address,
@@ -81,6 +83,7 @@ namespace Homecare.Controllers
             var patient = await unitOfWork.Patients.GetById(id);
             if (patient is null) return NotFound("Wrong ID");
             unitOfWork.Patients.Delete(patient);
+            await unitOfWork.SaveDbAsync();
             return Ok();
         }
         [HttpPut("{id:int}")]
@@ -95,6 +98,7 @@ namespace Homecare.Controllers
             old.Gender= updated.Gender;
             old.Image=await imageServices.ConvertToArray(updated.Image);
             unitOfWork.Patients.UpdateById(old);
+            await unitOfWork.SaveDbAsync();
             return CreatedAtAction(nameof(GetPatient), routeValues: new { id = old.Id }, updated);
 
         }
