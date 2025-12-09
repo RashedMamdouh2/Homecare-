@@ -3,14 +3,16 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Homecare.DTO
 {
-    public class PhysicianDto
+    public class PhysicianCreateDto
     {
+        [Required]
         public string Name { get; set; }
 
+        [Required]
         public int SpecializationId { get; set; }
-        public Specialization Specialization { get; set; }
         [Required]
         public string ClinicalAddress { get; set; }
-        public byte[] Image { get; set; }
+        [Required]
+        public IFormFile Image { get; set; }
     }
 }
