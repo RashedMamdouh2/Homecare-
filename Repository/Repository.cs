@@ -2,6 +2,7 @@
 using Homecare.Model;
 using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
+using System.Runtime.CompilerServices;
 
 namespace Homecare.Repository
 {
@@ -73,5 +74,14 @@ namespace Homecare.Repository
         {
             DbSet.Update(entity);
         }
+        public async Task AddAsync(TEntity entity)
+        {
+            await DbSet.AddAsync(entity);
+        }
+        public  void Delete(TEntity entity)
+        {
+             DbSet.Remove(entity);
+        }
+
     }
 }
