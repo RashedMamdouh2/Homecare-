@@ -2,14 +2,17 @@
 using Homecare.Model;
 using Homecare.Repository;
 using Homecare.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Buffers.Text;
+using System.ComponentModel.DataAnnotations;
 
 namespace Homecare.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+  
     public class AppointmentsController : ControllerBase
     {
         private readonly IUnitOfWork unitOfWork;
@@ -89,7 +92,7 @@ namespace Homecare.Controllers
                 return BadRequest("This Physician Has an Appointment At The same time");
             }
             var PatientAppointmentAtSameTime = await unitOfWork.Appointments.FindAsync(existedAppointment => 
-            existedAppointment.PatientId == AppointmentToBookDto.PatientId
+            existedAppointment.PatientId == AppointmentToBookDto.patientId
             &&existedAppointment.AppointmentDate==AppointmentToBookDto.AppointmentDate&& 
             AppointmentToBookDto.StartTime < existedAppointment.EndTime &&
             AppointmentToBookDto.EndTime > existedAppointment.StartTime
@@ -106,7 +109,7 @@ namespace Homecare.Controllers
                 MeetingAddress = AppointmentToBookDto.MeetingAddress,
                 AppointmentDate = AppointmentToBookDto.AppointmentDate,
                 PhysicianNotes=AppointmentToBookDto.PhysicianNotes,
-                PatientId=AppointmentToBookDto.PatientId,
+                PatientId=AppointmentToBookDto.patientId,
                 PhysicianId=AppointmentToBookDto.PhysicianId
 
             };
@@ -132,8 +135,9 @@ namespace Homecare.Controllers
             old.StartTime = updated.StartTime;
             old.EndTime = updated.EndTime;
             old.AppointmentDate = updated.AppointmentDate;
-            old.PatientId = updated.PatientId;
+            old.PatientId = updated.patientId;
             old.PhysicianId = updated.PhysicianId;
+            old.PhysicianNotes = updated.PhysicianNotes;
             unitOfWork.Appointments.UpdateById(old);
             await unitOfWork.SaveDbAsync();
             return CreatedAtAction(nameof(GetAppointment), routeValues: new { id = old.Id }, updated);
@@ -149,7 +153,7 @@ namespace Homecare.Controllers
             {
                 AppointmentId=appointment.Id,
                 Descritpion = reportToCreate.Descritpion,
-                PatientId = reportToCreate.PatientId,
+                patientId = reportToCreate.patientId,
                 PhysicianId = reportToCreate.PhysicianId,
                 Pdf=pdfService.CreateReportPDF(reportToCreate),
                 Medications = reportToCreate.Medications.Select(Md => new Medication 
@@ -168,7 +172,7 @@ namespace Homecare.Controllers
 
             };
             //add the medications to the patient as well
-            var patient = await unitOfWork.Patients.GetById(reportToCreate.PatientId);
+            var patient = await unitOfWork.Patients.FindAsync(p=>p.Id==reportToCreate.patientId,new string[] { });
             patient.Medications.AddRange(report.Medications);
 
             await unitOfWork.Reports.AddAsync(report);

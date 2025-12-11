@@ -2,6 +2,7 @@
 using Homecare.Model;
 using Homecare.Repository;
 using Homecare.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -55,6 +56,7 @@ namespace Homecare.Controllers
             return Ok(Physicians);
         }
         [HttpPost("AddPhysician")]
+        [Authorize("adming")]
         public async Task<IActionResult> AddPhysician([FromForm] PhysicianCreateDto PhysicianDto)
         {
             var allowedTypes = new[] { "image/jpeg", "image/png", "image/jpg" };
@@ -75,6 +77,7 @@ namespace Homecare.Controllers
             return CreatedAtAction(nameof(GetPhysician), routeValues: new { id = p.Id }, PhysicianDto);
         }
         [HttpDelete("{id:int}")]
+        [Authorize("adming")]
         public async Task<IActionResult> RemovePhysician(int id)
         {
             var Physician = await unitOfWork.Physicians.GetById(id);
@@ -98,5 +101,31 @@ namespace Homecare.Controllers
 
         }
 
+        [HttpGet("GetPhysicianAppointments/{physicianId:int}")]
+        [Authorize("admin,physician")]
+        public async Task<IActionResult> GetAppointment(int physicianId)
+        {
+            var AppointmentDB = unitOfWork.Appointments.FindAll(app => app.PhysicianId == physicianId, new string[] { nameof(Model.Appointment.Report), nameof(Patient), nameof(Physician) }).ToList();
+
+
+            if (AppointmentDB == null)
+            {
+                return NotFound("Wrong ID");
+            }
+            var Appointments = AppointmentDB.Select(app => new AppointmentSendDto
+            {
+                Id = app.Id,
+                StartTime = app.StartTime,
+                EndTime = app.EndTime,
+                MeetingAddress = app.MeetingAddress,
+                AppointmentDate = app.AppointmentDate,
+                PatientName = app.Patient.Name,
+                PhysicianName = app.Physician.Name,
+                PhysicianNotes = app.PhysicianNotes,
+                Medications = new(),
+                PdfBase64 = ""
+            });
+            return Ok(Appointments);
+        }
     }
 }

@@ -2,6 +2,7 @@
 using Homecare.Model;
 using Homecare.Repository;
 using Homecare.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -63,6 +64,7 @@ namespace Homecare.Controllers
 
         }
         [HttpPost("AddSpecialization")]
+        [Authorize("admin")]
         public async Task<IActionResult> AddSpecialization(SpecializationSendDto specializationDto) {
 
             var specDb=new Specialization { Name=specializationDto.Name,Description=specializationDto.Description};
@@ -71,6 +73,8 @@ namespace Homecare.Controllers
             return CreatedAtAction(nameof(GetSpecialization),routeValues: new { id=specDb.Id },specializationDto);
         }
         [HttpDelete("{id:int}")]
+        [Authorize("admin")]
+        
         public async Task<IActionResult> RemoveSpecialization(int id) {
 
             var specialization = await unitOfWork.Specializations.GetById(id);
@@ -80,7 +84,8 @@ namespace Homecare.Controllers
             return Ok();
         }
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdatePhysician(SpecializationSendDto updated, int id)
+        [Authorize("admin")]
+        public async Task<IActionResult> UpdateSpecialization(SpecializationSendDto updated, int id)
         {
             var old = await unitOfWork.Specializations.GetById(id);
             if (old is null) return NotFound("Wrong ID");

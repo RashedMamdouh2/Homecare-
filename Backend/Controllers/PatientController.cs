@@ -2,6 +2,7 @@
 using Homecare.Model;
 using Homecare.Repository;
 using Homecare.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,6 +10,7 @@ namespace Homecare.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    
     public class PatientController : ControllerBase
     {
         private readonly IUnitOfWork unitOfWork;
@@ -80,7 +82,7 @@ namespace Homecare.Controllers
             };
             await unitOfWork.Patients.AddAsync(p);
             await unitOfWork.SaveDbAsync();
-            return CreatedAtAction(nameof(GetPatient), routeValues: new { id = p.Id }, patientDto);
+            return CreatedAtAction(nameof(GetPatient), routeValues: new { id = p.Id }, p);
         }
         [HttpDelete("{id:int}")]
         public async Task<IActionResult> RemovePatient([FromRoute]int id)
