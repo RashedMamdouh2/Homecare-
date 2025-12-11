@@ -102,7 +102,7 @@ namespace Homecare.Controllers
         }
 
         [HttpGet("GetPhysicianAppointments/{physicianId:int}")]
-        [Authorize("admin,physician")]
+        [Authorize(Roles ="admin,physician")]
         public async Task<IActionResult> GetAppointment(int physicianId)
         {
             var AppointmentDB = unitOfWork.Appointments.FindAll(app => app.PhysicianId == physicianId, new string[] { nameof(Model.Appointment.Report), nameof(Patient), nameof(Physician) }).ToList();
