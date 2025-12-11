@@ -18,11 +18,12 @@ namespace Homecare.Controllers
         {
             this.unitOfWork = unitOfWork;
             this.imageServices = imageServices;
+            
         }
         [HttpGet("GetPatient/{id:int}")]
         public async Task<IActionResult> GetPatient(int id)
         {
-            var patientDB = await unitOfWork.Patients.GetById(id);
+            var patientDB = await unitOfWork.Patients.FindAsync(patient=>patient.Id==id,new string[] { nameof(Patient.Subscription)});
             if (patientDB == null) {
                 return NotFound("Wrong ID");
             }
@@ -34,6 +35,8 @@ namespace Homecare.Controllers
                 City = patientDB.City,
                 Gender = patientDB.Gender,
                 Image = imageServices.ConvertArrayToImage(patientDB.Image),
+                SubscriptionName=patientDB.Subscription.Name.ToString(),
+                SubscriptionPrice=patientDB.Subscription.Price,
 
             };
             return Ok(patient);
@@ -42,7 +45,7 @@ namespace Homecare.Controllers
         public IActionResult GetAllPatients()
         {
 
-            var patients = unitOfWork.Patients.GetAll().OrderBy(p => p.Name).Select(p => new PatientSendDto {
+            var patients = unitOfWork.Patients.FindAll(p=>true, new string[] { nameof(Patient.Subscription) }).OrderByDescending(p => p.Subscription.Price).Select(p => new PatientSendDto {
                 Id = p.Id, 
                 Name = p.Name,
                 Phone = p.Phone,
@@ -50,6 +53,8 @@ namespace Homecare.Controllers
                 City = p.City,
                 Gender = p.Gender,
                 Image = imageServices.ConvertArrayToImage(p.Image),
+                SubscriptionName = p.Subscription.Name.ToString(),
+                SubscriptionPrice = p.Subscription.Price,
 
 
             });
@@ -77,8 +82,8 @@ namespace Homecare.Controllers
             await unitOfWork.SaveDbAsync();
             return CreatedAtAction(nameof(GetPatient), routeValues: new { id = p.Id }, patientDto);
         }
-        [HttpDelete]
-        public async Task<IActionResult> RemovePatient(int id)
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> RemovePatient([FromRoute]int id)
         {
             var patient = await unitOfWork.Patients.GetById(id);
             if (patient is null) return NotFound("Wrong ID");
@@ -96,12 +101,45 @@ namespace Homecare.Controllers
             old.Address= updated.Address;
             old.City= updated.City;
             old.Gender= updated.Gender;
-            old.Image=await imageServices.ConvertToArray(updated.Image);
+            if(updated.Image is not null)
+                old.Image=await imageServices.ConvertToArray(updated.Image);
+
+            if (updated.SubscriptionId is not null) old.SubscriptionId =(int)updated.SubscriptionId;
             unitOfWork.Patients.UpdateById(old);
             await unitOfWork.SaveDbAsync();
             return CreatedAtAction(nameof(GetPatient), routeValues: new { id = old.Id }, updated);
 
         }
 
+
+        [HttpGet("GetPatientAppointments/{patientId:int}")]
+        public async Task<IActionResult> GetAppointment(int patientId)
+        {
+            var AppointmentDB =  unitOfWork.Appointments.FindAll(app => app.PatientId == patientId, new string[] { nameof(Model.Appointment.Report),nameof(Patient),nameof(Physician) }).ToList();
+
+
+            if (AppointmentDB == null)
+            {
+                return NotFound("Wrong ID");
+            }
+            var Appointments = AppointmentDB.Select(app => new AppointmentSendDto
+            {
+                Id = app.Id,
+                StartTime = app.StartTime,
+                EndTime = app.EndTime,
+                MeetingAddress = app.MeetingAddress,
+                AppointmentDate = app.AppointmentDate,
+                PatientName = app.Patient.Name,
+                PhysicianName = app.Physician.Name,
+                PhysicianNotes = app.PhysicianNotes,
+                Medications = new(),
+                PdfBase64 = ""
+            });
+            return Ok(Appointments);
+        }
+
     }
+
+
+
 }

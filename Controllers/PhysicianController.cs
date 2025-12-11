@@ -74,7 +74,7 @@ namespace Homecare.Controllers
             await unitOfWork.SaveDbAsync();
             return CreatedAtAction(nameof(GetPhysician), routeValues: new { id = p.Id }, PhysicianDto);
         }
-        [HttpDelete]
+        [HttpDelete("{id:int}")]
         public async Task<IActionResult> RemovePhysician(int id)
         {
             var Physician = await unitOfWork.Physicians.GetById(id);
