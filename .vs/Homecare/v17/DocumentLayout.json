@@ -1,0 +1,107 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\Users\\rashe\\Desktop\\c#\\Homecare\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{883D3FF4-95DE-4690-BD12-67E403FD4332}|Homecare.csproj|c:\\users\\rashe\\desktop\\c#\\homecare\\backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{883D3FF4-95DE-4690-BD12-67E403FD4332}|Homecare.csproj|solutionrelative:backend\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\rashe\\Desktop\\c#\\Homecare\\Migrations\\20251210055140_add the medication table.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Migrations\\20251210055140_add the medication table.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\rashe\\Desktop\\c#\\Homecare\\Migrations\\20251210055033_add the medication table.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|solutionrelative:Migrations\\20251210055033_add the medication table.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\rashe\\AppData\\Local\\SourceServer\\d9a135bc4e89dff1b885e43b4444f6765fb9dac4f2f7e5b31d252289390576f3\\Program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{A2FE74E1-B743-11D0-AE1A-00A0C90FFFC3}|\u003CMiscFiles\u003E|C:\\Users\\rashe\\Desktop\\c#\\ApiProject\\Controllers\\AccountController.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{3ae79031-e1bc-11d0-8f78-00a0c9110057}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\rashe\\Desktop\\c#\\Homecare\\Backend\\Program.cs",
+              "RelativeDocumentMoniker": "Backend\\Program.cs",
+              "ToolTip": "C:\\Users\\rashe\\Desktop\\c#\\Homecare\\Backend\\Program.cs",
+              "RelativeToolTip": "Backend\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-11T06:01:55.741Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "20251210055140_add the medication table.cs",
+              "DocumentMoniker": "C:\\Users\\rashe\\Desktop\\c#\\Homecare\\Migrations\\20251210055140_add the medication table.cs",
+              "RelativeDocumentMoniker": "Migrations\\20251210055140_add the medication table.cs",
+              "ToolTip": "C:\\Users\\rashe\\Desktop\\c#\\Homecare\\Migrations\\20251210055140_add the medication table.cs",
+              "RelativeToolTip": "Migrations\\20251210055140_add the medication table.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-10T05:51:40.602Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "20251210055033_add the medication table.cs",
+              "DocumentMoniker": "C:\\Users\\rashe\\Desktop\\c#\\Homecare\\Migrations\\20251210055033_add the medication table.cs",
+              "RelativeDocumentMoniker": "Migrations\\20251210055033_add the medication table.cs",
+              "ToolTip": "C:\\Users\\rashe\\Desktop\\c#\\Homecare\\Migrations\\20251210055033_add the medication table.cs",
+              "RelativeToolTip": "Migrations\\20251210055033_add the medication table.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-10T05:50:33.724Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\Users\\rashe\\AppData\\Local\\SourceServer\\d9a135bc4e89dff1b885e43b4444f6765fb9dac4f2f7e5b31d252289390576f3\\Program.cs",
+              "RelativeDocumentMoniker": "..\\..\\..\\AppData\\Local\\SourceServer\\d9a135bc4e89dff1b885e43b4444f6765fb9dac4f2f7e5b31d252289390576f3\\Program.cs",
+              "ToolTip": "C:\\Users\\rashe\\AppData\\Local\\SourceServer\\d9a135bc4e89dff1b885e43b4444f6765fb9dac4f2f7e5b31d252289390576f3\\Program.cs",
+              "RelativeToolTip": "..\\..\\..\\AppData\\Local\\SourceServer\\d9a135bc4e89dff1b885e43b4444f6765fb9dac4f2f7e5b31d252289390576f3\\Program.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-09T13:38:59.456Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "AccountController.cs",
+              "DocumentMoniker": "C:\\Users\\rashe\\Desktop\\c#\\ApiProject\\Controllers\\AccountController.cs",
+              "RelativeDocumentMoniker": "..\\ApiProject\\Controllers\\AccountController.cs",
+              "ToolTip": "C:\\Users\\rashe\\Desktop\\c#\\ApiProject\\Controllers\\AccountController.cs",
+              "RelativeToolTip": "..\\ApiProject\\Controllers\\AccountController.cs",
+              "ViewState": "AgIAACwAAAAAAAAAAEBlwC4AAAAUAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-07T20:05:13.525Z"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{cce594b6-0c39-4442-ba28-10c64ac7e89f}"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
