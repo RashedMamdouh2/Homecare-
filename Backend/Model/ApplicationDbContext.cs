@@ -1,8 +1,10 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 
 namespace Homecare.Model
 {
-    public class ApplicationDbContext:DbContext 
+    public class ApplicationDbContext :IdentityDbContext<ApplicationUser>
     {
         public DbSet<Patient> Patients { get; set; }
         public DbSet<Physician> Physicians { get; set; }
@@ -16,4 +18,5 @@ namespace Homecare.Model
             
         }
     }
+ 
 }
