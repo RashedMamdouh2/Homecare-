@@ -4,6 +4,7 @@ using Homecare.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Homecare.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251210052240_create Subscription Model for price plans")]
+    partial class createSubscriptionModelforpriceplans
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -275,15 +278,13 @@ namespace Homecare.Migrations
 
             modelBuilder.Entity("Homecare.Model.Medication", b =>
                 {
-                    b.HasOne("Homecare.Model.Patient", "Patient")
+                    b.HasOne("Homecare.Model.Patient", null)
                         .WithMany("Medications")
                         .HasForeignKey("PatientId");
 
                     b.HasOne("Homecare.Model.Report", null)
                         .WithMany("Medications")
                         .HasForeignKey("ReportId");
-
-                    b.Navigation("Patient");
                 });
 
             modelBuilder.Entity("Homecare.Model.Patient", b =>
