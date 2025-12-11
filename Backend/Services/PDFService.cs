@@ -27,7 +27,7 @@ namespace Homecare.Services
                     page.Size(PageSizes.A4);
                     page.PageColor(Colors.White);
 
-                    page.Header().Text($"Patient Report - ID: {report.PatientId}")
+                    page.Header().Text($"Patient Report - ID: {report.patientId}")
                         .FontSize(18)
                         .Bold()
                         .FontColor(Colors.Blue.Medium);
