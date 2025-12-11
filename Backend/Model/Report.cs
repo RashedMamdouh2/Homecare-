@@ -7,7 +7,7 @@ namespace Homecare.Model
         public int Id { get; set; }
         public string Descritpion { get; set; }
 
-        public int PatientId { get; set; }
+        public int patientId { get; set; }
         public Patient Patient { get; set; }
 
         public int PhysicianId { get; set; }
