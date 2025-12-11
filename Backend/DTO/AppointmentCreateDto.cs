@@ -11,7 +11,7 @@ namespace Homecare.DTO
 
         [Required]
         public TimeOnly EndTime { get; set; }
-        public int PatientId { get; set; }
+        public int patientId { get; set; }
         public int PhysicianId { get; set; }
         public string MeetingAddress { get; set; }
         [Required]
