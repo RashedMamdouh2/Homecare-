@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Homecare.Model
 {
@@ -13,6 +14,9 @@ namespace Homecare.Model
         public int? DoseFrequency { get; set; }
         public decimal? Dose { get; set; }
         public List<TimeOnly>? UsageTimes { get; set; }
+        [ForeignKey(nameof(Patient))]
+        public int ? PatientId { get; set; }
+        public Patient Patient { get; set; }
     }
    
 }

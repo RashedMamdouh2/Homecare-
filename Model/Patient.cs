@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Homecare.Model
 {
@@ -19,13 +20,18 @@ namespace Homecare.Model
         [Required]
        
         public byte [] Image { get; set; }
+        
+        public Subscription Subscription { get; set; }
+        [ForeignKey(nameof(Subscription))]
+        public int SubscriptionId { get; set; }
         public List<Appointment> Appointements { get; set; }
         public List<Medication>Medications { get; set; }
         public Patient()
         {
             Appointements = new();
             Medications = new();
+            SubscriptionId = 1;
         }
     }
-
+   
 }
