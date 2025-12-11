@@ -5,5 +5,5 @@ obj/
 *.suo
 *.vsidx
 appsettings*.json
-frontend/
+frontend/*
 
