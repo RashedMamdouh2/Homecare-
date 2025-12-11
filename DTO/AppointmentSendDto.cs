@@ -16,7 +16,7 @@ namespace Homecare.DTO
         public string PhysicianName { get; set; }
         public string PhysicianNotes { get; set; }
         public string MeetingAddress { get; set; }
-        public List<MedicationSendAndCreateDto> Medications { get; set; }
+        public List<MedicationSendAndCreateDto> ?Medications { get; set; }
         public string PdfBase64 { get; set; }
     }
 }

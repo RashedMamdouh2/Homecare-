@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Homecare.Model;
+using System.ComponentModel.DataAnnotations;
 
 namespace Homecare.DTO
 {
@@ -13,6 +14,9 @@ namespace Homecare.DTO
         public string City { get; set; }
         
         public string Image { get; set; }
+        public string SubscriptionName { get; set; }
+        public decimal SubscriptionPrice { get; set; }
+
        
     }
 }

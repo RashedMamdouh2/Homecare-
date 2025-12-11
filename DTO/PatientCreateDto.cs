@@ -11,7 +11,8 @@ namespace Homecare.DTO
         public string Gender { get; set; }
         public string Address { get; set; }
         public string City { get; set; }
-        
+
+        public int? SubscriptionId { get; set; }
         public IFormFile Image { get; set; }
        
     }
