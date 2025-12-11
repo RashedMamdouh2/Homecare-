@@ -4,6 +4,7 @@ using Homecare.Model;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Homecare.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251211135327_add User and role Identity Models")]
+    partial class addUserandroleIdentityModels
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -58,17 +61,11 @@ namespace Homecare.Migrations
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("PatientId")
-                        .HasColumnType("int");
-
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
-
-                    b.Property<int?>("PhysicianId")
-                        .HasColumnType("int");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
@@ -89,10 +86,6 @@ namespace Homecare.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
-
-                    b.HasIndex("PatientId");
-
-                    b.HasIndex("PhysicianId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -267,6 +260,9 @@ namespace Homecare.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
                     b.Property<byte[]>("Pdf")
                         .IsRequired()
                         .HasColumnType("varbinary(max)");
@@ -274,17 +270,14 @@ namespace Homecare.Migrations
                     b.Property<int>("PhysicianId")
                         .HasColumnType("int");
 
-                    b.Property<int>("patientId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("AppointmentId")
                         .IsUnique();
 
-                    b.HasIndex("PhysicianId");
+                    b.HasIndex("PatientId");
 
-                    b.HasIndex("patientId");
+                    b.HasIndex("PhysicianId");
 
                     b.ToTable("Reports");
                 });
@@ -462,21 +455,6 @@ namespace Homecare.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Homecare.Model.ApplicationUser", b =>
-                {
-                    b.HasOne("Homecare.Model.Patient", "Patient")
-                        .WithMany()
-                        .HasForeignKey("PatientId");
-
-                    b.HasOne("Homecare.Model.Physician", "Physician")
-                        .WithMany()
-                        .HasForeignKey("PhysicianId");
-
-                    b.Navigation("Patient");
-
-                    b.Navigation("Physician");
-                });
-
             modelBuilder.Entity("Homecare.Model.Appointment", b =>
                 {
                     b.HasOne("Homecare.Model.Patient", "Patient")
@@ -539,15 +517,15 @@ namespace Homecare.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Homecare.Model.Physician", "Physician")
+                    b.HasOne("Homecare.Model.Patient", "Patient")
                         .WithMany()
-                        .HasForeignKey("PhysicianId")
+                        .HasForeignKey("PatientId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Homecare.Model.Patient", "Patient")
+                    b.HasOne("Homecare.Model.Physician", "Physician")
                         .WithMany()
-                        .HasForeignKey("patientId")
+                        .HasForeignKey("PhysicianId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
