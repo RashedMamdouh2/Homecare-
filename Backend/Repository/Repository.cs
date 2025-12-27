@@ -78,6 +78,10 @@ namespace Homecare.Repository
         {
             await DbSet.AddAsync(entity);
         }
+        public async Task AddRangeAsync(List<TEntity> entities)
+        {
+            await DbSet.AddRangeAsync(entities);
+        }
         public  void Delete(TEntity entity)
         {
              DbSet.Remove(entity);

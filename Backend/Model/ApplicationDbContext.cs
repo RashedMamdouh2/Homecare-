@@ -13,6 +13,9 @@ namespace Homecare.Model
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<Report> Reports { get; set; }
         public DbSet<Specialization> Specializations { get; set; }
+        public DbSet<Disease> Diseases { get; set; }
+        public DbSet<PatientDisease> PatientDiseases { get; set; }
+        public DbSet<Feedback> Feedback { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) :base(options)
         {
             

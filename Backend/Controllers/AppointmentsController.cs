@@ -41,7 +41,7 @@ namespace Homecare.Controllers
             {
                 var ReportDb = await unitOfWork.Reports.FindAsync(R => R.Id == AppointmentDB.Report.Id, new string[] { nameof(Report.Medications) });
                 meds = ReportDb.Medications.Select(Med => new MedicationSendAndCreateDto { Description = Med.Description, Name = Med.Name, Dose = Med.Dose ?? 0, DoseFrequency = Med.DoseFrequency ?? 0, UsageTimes = Med.UsageTimes }).ToList();
-                pdf = Convert.ToBase64String(ReportDb.Pdf);
+                pdf = ReportDb.Pdf;
             }
                 var Appointment = new AppointmentSendDto
             {
@@ -57,6 +57,40 @@ namespace Homecare.Controllers
                 PdfBase64=pdf
             };
             return Ok(Appointment);
+        }
+        [HttpGet("AtDay")]
+        public IActionResult GetThisDayAppointments([FromQuery]DateTime date, [FromQuery] int patientId)
+        {
+            var appointments= unitOfWork.Appointments.FindAll(ap => ap.PatientId == patientId && ap.AppointmentDate == date, new string[] {nameof(Appointment.Physician) }).Select(app=>new AppointmentSendDto {
+            
+                StartTime=app.StartTime,
+                AppointmentDate=app.AppointmentDate,
+                EndTime=app.EndTime,
+                Id=app.Id,
+                MeetingAddress=app.MeetingAddress,
+                PhysicianName=app.Physician.Name,
+                PhysicianNotes=app.PhysicianNotes
+                
+            
+            });
+            return Ok(appointments);
+        }
+        [HttpGet("Medications")]
+        public async Task<IActionResult> GetThisDayMedications([FromQuery]DateTime date, [FromQuery] int patientId)
+        {
+            var patient = await unitOfWork.Patients.FindAsync(p => p.Id == patientId, new string[] { nameof(Patient.Medications) });
+
+            var medications = patient.Medications.Select(m => new MedicationSendAndCreateDto
+            {
+                Description = m.Description,
+                Dose = m.Dose,
+                DoseFrequency = m.DoseFrequency,
+                Name = m.Name,
+                UsageTimes = m.UsageTimes
+
+            });
+               
+            return Ok(medications);
         }
         [HttpGet("GetAllAppointments")]
         public IActionResult GetAllAppointments()
@@ -117,32 +151,6 @@ namespace Homecare.Controllers
             await unitOfWork.SaveDbAsync();
             return CreatedAtAction(nameof(GetAppointment), routeValues: new { id = p.Id }, AppointmentToBookDto);
         }
-        [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> RemoveAppointment([FromRoute]Guid id)
-        {
-            var Appointment = await unitOfWork.Appointments.FindAsync(ap=>ap.Id==id,new string[] { });
-            if (Appointment is null) return NotFound("Wrong ID");
-            unitOfWork.Appointments.Delete(Appointment);
-            await unitOfWork.SaveDbAsync();
-            return Ok();
-        }
-        [HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdateAppointment(AppointmentCreateDto updated, Guid id)
-        {
-            var old = await unitOfWork.Appointments.FindAsync(app=>app.Id==id,new string[] { });
-            if (old is null) return NotFound("Wrong ID");
-            old.MeetingAddress = updated.MeetingAddress;
-            old.StartTime = updated.StartTime;
-            old.EndTime = updated.EndTime;
-            old.AppointmentDate = updated.AppointmentDate;
-            old.PatientId = updated.patientId;
-            old.PhysicianId = updated.PhysicianId;
-            old.PhysicianNotes = updated.PhysicianNotes;
-            unitOfWork.Appointments.UpdateById(old);
-            await unitOfWork.SaveDbAsync();
-            return CreatedAtAction(nameof(GetAppointment), routeValues: new { id = old.Id }, updated);
-
-        }
         [HttpPost("Add/Appointment/Report/{appointmentId:guid}")]
         public async Task<IActionResult> AddReport(ReportCreateDto reportToCreate,[FromRoute] Guid appointmentId)
         {
@@ -155,7 +163,7 @@ namespace Homecare.Controllers
                 Descritpion = reportToCreate.Descritpion,
                 patientId = reportToCreate.patientId,
                 PhysicianId = reportToCreate.PhysicianId,
-                Pdf=pdfService.CreateReportPDF(reportToCreate),
+                Pdf= await pdfService.CreateReportPDF(reportToCreate),
                 Medications = reportToCreate.Medications.Select(Md => new Medication 
                 { 
                     Description = Md.Description,
@@ -182,45 +190,36 @@ namespace Homecare.Controllers
                 id=appointment.Id
             }, new
             {
-                PdfBase64 = Convert.ToBase64String(report.Pdf)
+                PdfBase64 = report.Pdf
         } );
 
 
         }
-        [HttpGet("AtDay")]
-        public IActionResult GetThisDayAppointments([FromQuery]DateTime date, [FromQuery] int patientId)
+        [HttpDelete("{id:guid}")]
+        public async Task<IActionResult> RemoveAppointment([FromRoute]Guid id)
         {
-            var appointments= unitOfWork.Appointments.FindAll(ap => ap.PatientId == patientId && ap.AppointmentDate == date, new string[] {nameof(Appointment.Physician) }).Select(app=>new AppointmentSendDto {
-            
-                StartTime=app.StartTime,
-                AppointmentDate=app.AppointmentDate,
-                EndTime=app.EndTime,
-                Id=app.Id,
-                MeetingAddress=app.MeetingAddress,
-                PhysicianName=app.Physician.Name,
-                PhysicianNotes=app.PhysicianNotes
-                
-            
-            });
-            return Ok(appointments);
+            var Appointment = await unitOfWork.Appointments.FindAsync(ap=>ap.Id==id,new string[] { });
+            if (Appointment is null) return NotFound("Wrong ID");
+            unitOfWork.Appointments.Delete(Appointment);
+            await unitOfWork.SaveDbAsync();
+            return Ok();
         }
-        [HttpGet("Medications")]
-        
-        public async Task<IActionResult> GetThisDayMedications([FromQuery]DateTime date, [FromQuery] int patientId)
+        [HttpPut("{id:guid}")]
+        public async Task<IActionResult> UpdateAppointment(AppointmentCreateDto updated, Guid id)
         {
-            var patient = await unitOfWork.Patients.FindAsync(p => p.Id == patientId, new string[] { nameof(Patient.Medications) });
+            var old = await unitOfWork.Appointments.FindAsync(app=>app.Id==id,new string[] { });
+            if (old is null) return NotFound("Wrong ID");
+            old.MeetingAddress = updated.MeetingAddress;
+            old.StartTime = updated.StartTime;
+            old.EndTime = updated.EndTime;
+            old.AppointmentDate = updated.AppointmentDate;
+            old.PatientId = updated.patientId;
+            old.PhysicianId = updated.PhysicianId;
+            old.PhysicianNotes = updated.PhysicianNotes;
+            unitOfWork.Appointments.UpdateById(old);
+            await unitOfWork.SaveDbAsync();
+            return CreatedAtAction(nameof(GetAppointment), routeValues: new { id = old.Id }, updated);
 
-            var medications = patient.Medications.Select(m => new MedicationSendAndCreateDto
-            {
-                Description = m.Description,
-                Dose = m.Dose,
-                DoseFrequency = m.DoseFrequency,
-                Name = m.Name,
-                UsageTimes = m.UsageTimes
-
-            });
-               
-            return Ok(medications);
         }
     }
 }

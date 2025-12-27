@@ -1,4 +1,5 @@
 ﻿using Homecare.DTO;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Homecare.Model
@@ -12,8 +13,9 @@ namespace Homecare.Model
 
         public int PhysicianId { get; set; }
         public Physician Physician { get; set; } 
+        
         public List<Medication>Medications { get; set; }
-        public byte[] Pdf { get; set; }
+        public string Pdf { get; set; }
 
         [ForeignKey(nameof(Appointment))]
         public Guid AppointmentId { get; set; }

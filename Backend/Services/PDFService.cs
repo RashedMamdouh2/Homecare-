@@ -8,14 +8,16 @@ using System.Linq;
 
 namespace Homecare.Services
 {
-    public interface IPDFService
-    {
-        byte[] CreateReportPDF(ReportCreateDto report);
-    }
 
     public class PDFService : IPDFService
     {
-        public byte[] CreateReportPDF(ReportCreateDto report)
+        private readonly IWebHostEnvironment _env;
+
+        public PDFService(IWebHostEnvironment environment)
+        {
+            this._env = environment;
+        }
+        public async Task <string> CreateReportPDF(ReportCreateDto report)
         {
             QuestPDF.Settings.License = QuestPDF.Infrastructure.LicenseType.Community;
 
@@ -97,7 +99,7 @@ namespace Homecare.Services
                         // Footer
                         column.Item().Text($"Generated on: {DateTime.Now}")
                             .FontSize(10)
-                            .AlignRight();
+                            .AlignCenter();
                     });
 
                     page.Footer().AlignCenter().Text(x =>
@@ -106,8 +108,20 @@ namespace Homecare.Services
                     });
                 });
             });
+            var generatedPdf = document.GeneratePdf();
+            return await ReadPdf(generatedPdf);
+        }
+        public async Task<string> ReadPdf(byte[] report)
+        {
+            string shortPath = Path.Combine("Pdf", Guid.NewGuid().ToString()+".pdf");
+            string fullPath = Path.Combine(_env.WebRootPath, shortPath);
+            using (var stream = new FileStream(fullPath, FileMode.Create))
+            {
+                await stream.WriteAsync(report);
 
-            return document.GeneratePdf();
+
+            }
+            return '/' + shortPath.Replace("\\", "/"); ;
         }
     }
 }

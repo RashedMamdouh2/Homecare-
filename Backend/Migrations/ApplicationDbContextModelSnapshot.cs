@@ -141,6 +141,50 @@ namespace Homecare.Migrations
                     b.ToTable("Appointements");
                 });
 
+            modelBuilder.Entity("Homecare.Model.Disease", b =>
+                {
+                    b.Property<string>("ICD")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ICD");
+
+                    b.ToTable("Diseases");
+                });
+
+            modelBuilder.Entity("Homecare.Model.Feedback", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PhysicianId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("rate")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("PhysicianId");
+
+                    b.ToTable("Feedback");
+                });
+
             modelBuilder.Entity("Homecare.Model.Medication", b =>
                 {
                     b.Property<int>("Id")
@@ -200,9 +244,9 @@ namespace Homecare.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<byte[]>("Image")
+                    b.Property<string>("Image")
                         .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -222,6 +266,36 @@ namespace Homecare.Migrations
                     b.ToTable("Patients");
                 });
 
+            modelBuilder.Entity("Homecare.Model.PatientDisease", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+
+                    b.Property<DateOnly>("DiagnosisDate")
+                        .HasColumnType("date");
+
+                    b.Property<string>("ICD")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly?>("RecoverdDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ICD");
+
+                    b.HasIndex("PatientId");
+
+                    b.ToTable("PatientDiseases");
+                });
+
             modelBuilder.Entity("Homecare.Model.Physician", b =>
                 {
                     b.Property<int>("Id")
@@ -230,17 +304,24 @@ namespace Homecare.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.PrimitiveCollection<string>("AvailableTimeTable")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("ClinicalAddress")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<byte[]>("Image")
+                    b.Property<string>("Image")
                         .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal>("SessionPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("SpecializationId")
                         .HasColumnType("int");
@@ -267,9 +348,9 @@ namespace Homecare.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<byte[]>("Pdf")
+                    b.Property<string>("Pdf")
                         .IsRequired()
-                        .HasColumnType("varbinary(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PhysicianId")
                         .HasColumnType("int");
@@ -486,7 +567,26 @@ namespace Homecare.Migrations
                         .IsRequired();
 
                     b.HasOne("Homecare.Model.Physician", "Physician")
-                        .WithMany("Appointements")
+                        .WithMany("ConfirmedAppointements")
+                        .HasForeignKey("PhysicianId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Patient");
+
+                    b.Navigation("Physician");
+                });
+
+            modelBuilder.Entity("Homecare.Model.Feedback", b =>
+                {
+                    b.HasOne("Homecare.Model.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Homecare.Model.Physician", "Physician")
+                        .WithMany("Feedbacks")
                         .HasForeignKey("PhysicianId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -518,6 +618,25 @@ namespace Homecare.Migrations
                         .IsRequired();
 
                     b.Navigation("Subscription");
+                });
+
+            modelBuilder.Entity("Homecare.Model.PatientDisease", b =>
+                {
+                    b.HasOne("Homecare.Model.Disease", "Disease")
+                        .WithMany("patientDiseases")
+                        .HasForeignKey("ICD")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Homecare.Model.Patient", "Patient")
+                        .WithMany("PatientDiseases")
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Disease");
+
+                    b.Navigation("Patient");
                 });
 
             modelBuilder.Entity("Homecare.Model.Physician", b =>
@@ -614,16 +733,25 @@ namespace Homecare.Migrations
                     b.Navigation("Report");
                 });
 
+            modelBuilder.Entity("Homecare.Model.Disease", b =>
+                {
+                    b.Navigation("patientDiseases");
+                });
+
             modelBuilder.Entity("Homecare.Model.Patient", b =>
                 {
                     b.Navigation("Appointements");
 
                     b.Navigation("Medications");
+
+                    b.Navigation("PatientDiseases");
                 });
 
             modelBuilder.Entity("Homecare.Model.Physician", b =>
                 {
-                    b.Navigation("Appointements");
+                    b.Navigation("ConfirmedAppointements");
+
+                    b.Navigation("Feedbacks");
                 });
 
             modelBuilder.Entity("Homecare.Model.Report", b =>

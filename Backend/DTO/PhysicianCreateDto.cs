@@ -18,5 +18,7 @@ namespace Homecare.DTO
         public string UserName { get; set; }
         [Required]
         public IFormFile Image { get; set; }
+        public decimal SessionPrice { get; set; }
+
     }
 }

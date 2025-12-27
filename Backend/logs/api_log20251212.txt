@@ -1,0 +1,51 @@
+2025-12-12 07:40:13.440 +02:00 [INF] Start installing Hangfire SQL objects...
+2025-12-12 07:40:15.156 +02:00 [INF] Hangfire SQL objects installed.
+2025-12-12 07:40:16.103 +02:00 [INF] User profile is available. Using 'C:\Users\rashe\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-12-12 07:40:16.707 +02:00 [INF] Now listening on: https://localhost:7149
+2025-12-12 07:40:16.709 +02:00 [INF] Now listening on: http://localhost:5004
+2025-12-12 07:40:16.850 +02:00 [INF] Starting Hangfire Server using job storage: 'SQL Server: db34838.public.databaseasp.net@db34838'
+2025-12-12 07:40:16.851 +02:00 [INF] Using the following options for SQL Server job storage: Queue poll interval: 00:00:00.
+2025-12-12 07:40:16.852 +02:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2025-12-12 07:40:16.890 +02:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-12-12 07:40:16.892 +02:00 [INF] Hosting environment: Development
+2025-12-12 07:40:16.893 +02:00 [INF] Content root path: C:\Users\rashe\Desktop\c#\Homecare\Backend
+2025-12-12 07:40:16.995 +02:00 [INF] Server desktop-5fgcs9p:3708:caf3daf5 successfully announced in 106.0941 ms
+2025-12-12 07:40:17.014 +02:00 [INF] Server desktop-5fgcs9p:3708:caf3daf5 is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, SqlServerHeartbeatProcess, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2025-12-12 07:40:17.225 +02:00 [INF] Server desktop-5fgcs9p:3708:caf3daf5 all the dispatchers started
+2025-12-12 07:41:12.795 +02:00 [WRN] No store type was specified for the decimal property 'Dose' on entity type 'Medication'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-12-12 07:41:12.796 +02:00 [WRN] No store type was specified for the decimal property 'Price' on entity type 'Subscription'. This will cause values to be silently truncated if they do not fit in the default precision and scale. Explicitly specify the SQL server column type that can accommodate all the values in 'OnModelCreating' using 'HasColumnType', specify precision and scale using 'HasPrecision', or configure a value converter using 'HasConversion'.
+2025-12-12 07:41:17.233 +02:00 [INF] Executed DbCommand (98ms) [Parameters=[], CommandType='"Text"', CommandTimeout='30']
+SELECT [m].[Id], [m].[Description], [m].[Dose], [m].[DoseFrequency], [m].[Name], [m].[PatientId], [m].[ReportId], [m].[UsageTimes], [p].[Id], [p].[Address], [p].[City], [p].[Gender], [p].[Image], [p].[Name], [p].[Phone], [p].[SubscriptionId]
+FROM [Medication] AS [m]
+LEFT JOIN [Patients] AS [p] ON [m].[PatientId] = [p].[Id]
+2025-12-12 07:41:21.344 +02:00 [INF] At 07:41 ص Found: 
+2025-12-12 07:41:36.727 +02:00 [INF] ----------------------
+2025-12-12 07:41:45.365 +02:00 [WRN] Stopping the server due to DomainUnload or ProcessExit event...
+2025-12-12 07:41:45.365 +02:00 [INF] Server desktop-5fgcs9p:3708:caf3daf5 caught stopping signal...
+2025-12-12 07:41:45.470 +02:00 [INF] Server desktop-5fgcs9p:3708:caf3daf5 caught stopped signal...
+2025-12-12 07:41:45.473 +02:00 [WRN] Server desktop-5fgcs9p:3708:caf3daf5 caught shutdown signal...
+2025-12-12 07:41:45.596 +02:00 [WRN] Server desktop-5fgcs9p:3708:caf3daf5 stopped non-gracefully due to Worker. Outstanding work on those dispatchers could be aborted, and there can be delays in background processing. This server instance will be incorrectly shown as active for a while. To avoid non-graceful shutdowns, investigate what prevents from stopping gracefully and add CancellationToken support for those methods.
+2025-12-12 07:41:46.047 +02:00 [INF] Server desktop-5fgcs9p:3708:caf3daf5 successfully reported itself as stopped in 446.5995 ms
+2025-12-12 07:41:46.048 +02:00 [INF] Server desktop-5fgcs9p:3708:caf3daf5 has been stopped in total 577.5421 ms
+2025-12-12 07:43:34.679 +02:00 [INF] Start installing Hangfire SQL objects...
+2025-12-12 07:43:36.069 +02:00 [INF] Hangfire SQL objects installed.
+2025-12-12 07:43:36.819 +02:00 [INF] User profile is available. Using 'C:\Users\rashe\AppData\Local\ASP.NET\DataProtection-Keys' as key repository and Windows DPAPI to encrypt keys at rest.
+2025-12-12 07:43:37.087 +02:00 [INF] Now listening on: https://localhost:7149
+2025-12-12 07:43:37.088 +02:00 [INF] Now listening on: http://localhost:5004
+2025-12-12 07:43:37.220 +02:00 [INF] Starting Hangfire Server using job storage: 'SQL Server: db34838.public.databaseasp.net@db34838'
+2025-12-12 07:43:37.221 +02:00 [INF] Using the following options for SQL Server job storage: Queue poll interval: 00:00:00.
+2025-12-12 07:43:37.222 +02:00 [INF] Using the following options for Hangfire Server:
+    Worker count: 20
+    Listening queues: 'default'
+    Shutdown timeout: 00:00:15
+    Schedule polling interval: 00:00:15
+2025-12-12 07:43:37.274 +02:00 [INF] Application started. Press Ctrl+C to shut down.
+2025-12-12 07:43:37.275 +02:00 [INF] Hosting environment: Development
+2025-12-12 07:43:37.276 +02:00 [INF] Content root path: C:\Users\rashe\Desktop\c#\Homecare\Backend
+2025-12-12 07:43:37.385 +02:00 [INF] Server desktop-5fgcs9p:15596:c09c42ea successfully announced in 111.3261 ms
+2025-12-12 07:43:37.411 +02:00 [INF] Server desktop-5fgcs9p:15596:c09c42ea is starting the registered dispatchers: ServerWatchdog, ServerJobCancellationWatcher, SqlServerHeartbeatProcess, ExpirationManager, CountersAggregator, Worker, DelayedJobScheduler, RecurringJobScheduler...
+2025-12-12 07:43:37.609 +02:00 [INF] Server desktop-5fgcs9p:15596:c09c42ea all the dispatchers started

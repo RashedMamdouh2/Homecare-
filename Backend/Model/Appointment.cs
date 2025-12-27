@@ -29,13 +29,16 @@ namespace Homecare.Model
         public Appointment()
         {
             Id = Guid.NewGuid();
-            Status = AppointmentStatus.FutureAppointment;
+            Status = AppointmentStatus.Pending;
         }
     }
     public enum AppointmentStatus
     {
-       FutureAppointment,
-       Finished
+       Confirmed,
+       Pending,
+       Canceled,
+       Completed,
+       FreeTime
        
     }
 

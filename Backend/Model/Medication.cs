@@ -18,5 +18,5 @@ namespace Homecare.Model
         public int ? PatientId { get; set; }
         public Patient Patient { get; set; }
     }
-   
+
 }

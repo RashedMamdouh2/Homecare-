@@ -58,13 +58,15 @@ namespace Homecare.Controllers
                 Id=p.Id,
                 SpecializationName = specialization.Name,
                 ClinicalAddress=p.ClinicalAddress,
-                Image=imageServices.ConvertArrayToImage(p.Image),
+                Image=p.Image,
                 Name=p.Name,
+                SessionPrice=p.SessionPrice,
             }));
 
         }
         [HttpPost("AddSpecialization")]
-        [Authorize("admin")]
+        [Authorize(Roles = "admin")]
+
         public async Task<IActionResult> AddSpecialization(SpecializationSendDto specializationDto) {
 
             var specDb=new Specialization { Name=specializationDto.Name,Description=specializationDto.Description};
@@ -72,19 +74,8 @@ namespace Homecare.Controllers
             await unitOfWork.SaveDbAsync();
             return CreatedAtAction(nameof(GetSpecialization),routeValues: new { id=specDb.Id },specializationDto);
         }
-        [HttpDelete("{id:int}")]
-        [Authorize("admin")]
-        
-        public async Task<IActionResult> RemoveSpecialization(int id) {
-
-            var specialization = await unitOfWork.Specializations.GetById(id);
-            if (specialization is null) return NotFound("Wrong ID");
-            unitOfWork.Specializations.Delete(specialization);
-            await unitOfWork.SaveDbAsync();
-            return Ok();
-        }
         [HttpPut("{id:int}")]
-        [Authorize("admin")]
+        [Authorize(Roles ="admin")]
         public async Task<IActionResult> UpdateSpecialization(SpecializationSendDto updated, int id)
         {
             var old = await unitOfWork.Specializations.GetById(id);
@@ -95,6 +86,17 @@ namespace Homecare.Controllers
             await unitOfWork.SaveDbAsync();
             return CreatedAtAction(nameof(GetSpecialization), routeValues: new { id = old.Id }, updated);
 
+        }
+        [HttpDelete("{id:int}")]
+        [Authorize(Roles ="admin")]
+        
+        public async Task<IActionResult> RemoveSpecialization(int id) {
+
+            var specialization = await unitOfWork.Specializations.GetById(id);
+            if (specialization is null) return NotFound("Wrong ID");
+            unitOfWork.Specializations.Delete(specialization);
+            await unitOfWork.SaveDbAsync();
+            return Ok();
         }
 
     }

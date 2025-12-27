@@ -77,7 +77,7 @@ namespace Homecare.Controllers
                     Address = newPatient.Address,
                     City = newPatient.City,
                     Gender = newPatient.Gender,
-                    Image = await imageServices.ConvertToArray(newPatient.Image!)
+                    Image = await imageServices.ReadImage(newPatient.Image!)
 
                 };
                 await unitOfWork.Patients.AddAsync(p);
@@ -118,7 +118,8 @@ namespace Homecare.Controllers
                     Name = PhysicianDto.Name,
                     SpecializationId = PhysicianDto.SpecializationId,
                     ClinicalAddress = PhysicianDto.ClinicalAddress,
-                    Image = await imageServices.ConvertToArray(PhysicianDto.Image!)
+                    Image = await imageServices.ReadImage(PhysicianDto.Image!),
+                    SessionPrice=PhysicianDto.SessionPrice
 
                 };
                 await unitOfWork.Physicians.AddAsync(p);

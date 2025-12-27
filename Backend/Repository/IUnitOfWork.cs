@@ -10,6 +10,11 @@ namespace Homecare.Repository
         public IRepository<Medication> Medications { get;  }
         public IRepository<Report> Reports { get;  }
         public IRepository<Specialization> Specializations { get;}
+        public IRepository<Disease> Diseases { get;}
+        public IRepository<PatientDisease> PatientDiseases { get;}
+        public IRepository<Feedback> Feedbacks { get;}
+
+
 
 
         public Task<int> SaveDbAsync();

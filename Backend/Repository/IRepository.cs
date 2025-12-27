@@ -12,6 +12,7 @@ namespace Homecare.Repository
         public IEnumerable<TEntity> FindAll(Expression<Func<TEntity, bool>> filter, string[] includes, int take = -1, int skip = -1);
         public  Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter, string[] includes);
         public Task AddAsync(TEntity entity);
+        public  Task AddRangeAsync(List<TEntity> entities);
         public void Delete(TEntity entity);
     }
 }

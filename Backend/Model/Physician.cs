@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
 namespace Homecare.Model
 {
@@ -12,12 +13,17 @@ namespace Homecare.Model
         [Required]
         public string ClinicalAddress {  get; set; }
         [Required]
-        public byte[] Image { get; set; }
-        public List<Appointment> Appointements {  get; set; }
+        public string Image { get; set; }
+        public List<Appointment> ConfirmedAppointements {  get; set; }
+        public List<Feedback> Feedbacks { get; set; }
+        public List<DateTime> AvailableTimeTable { get; set; }
+
+        public decimal SessionPrice { get; set; }
         public Physician()
         {
-            Appointements = new List<Appointment>();
+            ConfirmedAppointements = new List<Appointment>();
+            AvailableTimeTable = new List<DateTime>();
+            Feedbacks = new();
         }
     }
-
 }
