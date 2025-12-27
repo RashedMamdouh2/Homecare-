@@ -278,5 +278,114 @@ namespace Homecare.Controllers
 
             return NoContent();
         }
+
+        // Frontend API compatibility endpoints
+        [HttpPost("analyze/{dicomId}")]
+        [Authorize]
+        public async Task<IActionResult> AnalyzeDicom(string dicomId)
+        {
+            var dicomFile = await _unitOfWork.DicomFiles.FindAsync(
+                f => f.Id.ToString() == dicomId,
+                new[] { nameof(DicomFile.Patient), nameof(DicomFile.Physician) });
+
+            if (dicomFile == null)
+                return NotFound("DICOM file not found");
+
+            // Check if user has access to this file
+            var userId = User.FindFirst("userId")?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var user = await _unitOfWork.ApplicationUsers.FindAsync(u => u.Id == userId);
+            if (user == null) return Unauthorized();
+
+            bool hasAccess = false;
+            if (User.IsInRole("Admin"))
+            {
+                hasAccess = true;
+            }
+            else if (User.IsInRole("Physician"))
+            {
+                var physician = await _unitOfWork.Physicians.FindAsync(p => p.UserId == userId);
+                hasAccess = physician != null && physician.Id == dicomFile.PhysicianId;
+            }
+            else if (User.IsInRole("Patient"))
+            {
+                var patient = await _unitOfWork.Patients.FindAsync(p => p.UserId == userId);
+                hasAccess = patient != null && patient.Id == dicomFile.PatientId;
+            }
+
+            if (!hasAccess)
+                return Forbid("You don't have access to this DICOM file");
+
+            // Simulate AI analysis (in production, this would call an AI service)
+            var analysis = new DicomAnalysisResult
+            {
+                Id = Guid.NewGuid().ToString(),
+                FileName = dicomFile.OriginalFileName,
+                Findings = "AI analysis completed. No significant abnormalities detected in the imaging study.",
+                Confidence = 0.92,
+                Recommendations = "Follow up with physician for detailed interpretation. Consider additional imaging if symptoms persist.",
+                AnalyzedAt = DateTime.UtcNow.ToString("O"),
+                PhysicianId = dicomFile.PhysicianId,
+                PatientId = dicomFile.PatientId
+            };
+
+            // Save analysis result (you might want to store this in database)
+            // For now, we'll just return it
+
+            return Ok(analysis);
+        }
+
+        [HttpGet("analyses")]
+        [Authorize]
+        public async Task<IActionResult> GetAnalyses()
+        {
+            var userId = User.FindFirst("userId")?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var user = await _unitOfWork.ApplicationUsers.FindAsync(u => u.Id == userId);
+            if (user == null) return Unauthorized();
+
+            IEnumerable<DicomFile> dicomFiles;
+            if (User.IsInRole("Admin"))
+            {
+                dicomFiles = await _unitOfWork.DicomFiles.FindAll(null, new[] { nameof(DicomFile.Patient), nameof(DicomFile.Physician) });
+            }
+            else if (User.IsInRole("Physician"))
+            {
+                var physician = await _unitOfWork.Physicians.FindAsync(p => p.UserId == userId);
+                if (physician == null) return NotFound("Physician not found");
+                dicomFiles = await _unitOfWork.DicomFiles.FindAll(
+                    f => f.PhysicianId == physician.Id,
+                    new[] { nameof(DicomFile.Patient), nameof(DicomFile.Physician) });
+            }
+            else if (User.IsInRole("Patient"))
+            {
+                var patient = await _unitOfWork.Patients.FindAsync(p => p.UserId == userId);
+                if (patient == null) return NotFound("Patient not found");
+                dicomFiles = await _unitOfWork.DicomFiles.FindAll(
+                    f => f.PatientId == patient.Id,
+                    new[] { nameof(DicomFile.Patient), nameof(DicomFile.Physician) });
+            }
+            else
+            {
+                return Forbid();
+            }
+
+            // Generate mock analysis results for each DICOM file
+            var analyses = dicomFiles.Select(f => new DicomAnalysisResult
+            {
+                Id = Guid.NewGuid().ToString(),
+                FileName = f.OriginalFileName,
+                Findings = $"Analysis completed for {f.OriginalFileName}. Normal findings observed.",
+                Confidence = 0.88,
+                Recommendations = "Routine follow-up recommended.",
+                AnalyzedAt = DateTime.UtcNow.AddDays(-1).ToString("O"),
+                PhysicianId = f.PhysicianId,
+                PatientId = f.PatientId
+            });
+
+            return Ok(analyses);
+        }
     }
 }

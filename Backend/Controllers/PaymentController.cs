@@ -7,7 +7,7 @@ using Stripe;
 
 namespace Homecare.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/payments")]
     [ApiController]
     public class PaymentController : ControllerBase
     {
@@ -243,6 +243,128 @@ namespace Homecare.Controllers
             await _unitOfWork.SaveDbAsync();
 
             return CreatedAtAction(nameof(GetInvoice), new { invoiceId = invoice.Id }, invoice);
+        }
+
+        // Frontend API compatibility endpoints
+        [HttpGet("invoices")]
+        [Authorize]
+        public async Task<IActionResult> GetUserInvoices()
+        {
+            var userId = User.FindFirst("userId")?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var user = await _unitOfWork.ApplicationUsers.FindAsync(u => u.Id == userId);
+            if (user == null) return Unauthorized();
+
+            // Get patient or physician based on role
+            IEnumerable<Invoice> invoices;
+            if (User.IsInRole("Patient"))
+            {
+                var patient = await _unitOfWork.Patients.FindAsync(p => p.UserId == userId);
+                if (patient == null) return NotFound("Patient not found");
+                invoices = await _unitOfWork.Invoices.FindAll(
+                    i => i.PatientId == patient.Id,
+                    new[] { nameof(Invoice.Patient), nameof(Invoice.Payments) });
+            }
+            else if (User.IsInRole("Physician") || User.IsInRole("Admin"))
+            {
+                // Admin/Physician can see all invoices
+                invoices = await _unitOfWork.Invoices.FindAll(
+                    null,
+                    new[] { nameof(Invoice.Patient), nameof(Invoice.Payments) });
+            }
+            else
+            {
+                return Forbid();
+            }
+
+            var result = invoices.Select(i => new InvoiceSendDto
+            {
+                Id = i.Id,
+                PatientId = i.PatientId,
+                PatientName = i.Patient?.Name ?? "Unknown",
+                Amount = i.Amount,
+                Description = i.Description,
+                InvoiceDate = i.InvoiceDate,
+                DueDate = i.DueDate,
+                Status = i.Status,
+                Payments = i.Payments.Select(p => new PaymentSendDto
+                {
+                    Id = p.Id,
+                    Amount = p.Amount,
+                    PaymentDate = p.PaymentDate,
+                    PaymentMethod = p.PaymentMethod,
+                    Status = p.Status
+                }).ToList()
+            });
+
+            return Ok(result);
+        }
+
+        [HttpPost("create-intent")]
+        [Authorize]
+        public async Task<IActionResult> CreateIntent([FromBody] PaymentCreateDto paymentDto)
+        {
+            return await CreatePaymentIntent(paymentDto);
+        }
+
+        [HttpPost("confirm")]
+        [Authorize]
+        public async Task<IActionResult> ConfirmPayment([FromBody] PaymentConfirmationDto confirmation)
+        {
+            return await ConfirmPaymentIntent(confirmation.PaymentIntentId);
+        }
+
+        [HttpPost("generate-bill")]
+        [Authorize(Roles = "Admin,Physician")]
+        public async Task<IActionResult> GenerateBill([FromBody] InvoiceCreateDto invoiceDto)
+        {
+            return await CreateInvoice(invoiceDto);
+        }
+
+        [HttpGet("history")]
+        [Authorize]
+        public async Task<IActionResult> GetPaymentHistory()
+        {
+            var userId = User.FindFirst("userId")?.Value;
+            if (string.IsNullOrEmpty(userId)) return Unauthorized();
+
+            var user = await _unitOfWork.ApplicationUsers.FindAsync(u => u.Id == userId);
+            if (user == null) return Unauthorized();
+
+            IEnumerable<Payment> payments;
+            if (User.IsInRole("Patient"))
+            {
+                var patient = await _unitOfWork.Patients.FindAsync(p => p.UserId == userId);
+                if (patient == null) return NotFound("Patient not found");
+                payments = await _unitOfWork.Payments.FindAll(
+                    p => p.Invoice.PatientId == patient.Id,
+                    new[] { nameof(Payment.Invoice), $"{nameof(Payment.Invoice)}.{nameof(Invoice.Patient)}" });
+            }
+            else if (User.IsInRole("Physician") || User.IsInRole("Admin"))
+            {
+                payments = await _unitOfWork.Payments.FindAll(
+                    null,
+                    new[] { nameof(Payment.Invoice), $"{nameof(Payment.Invoice)}.{nameof(Invoice.Patient)}" });
+            }
+            else
+            {
+                return Forbid();
+            }
+
+            var result = payments.Select(p => new
+            {
+                Id = p.Id,
+                InvoiceId = p.InvoiceId,
+                PatientName = p.Invoice?.Patient?.Name ?? "Unknown",
+                Amount = p.Amount,
+                PaymentDate = p.PaymentDate,
+                PaymentMethod = p.PaymentMethod,
+                Status = p.Status,
+                Description = p.Invoice?.Description ?? "N/A"
+            });
+
+            return Ok(result);
         }
     }
 }
