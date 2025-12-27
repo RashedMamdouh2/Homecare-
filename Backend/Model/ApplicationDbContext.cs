@@ -16,6 +16,11 @@ namespace Homecare.Model
         public DbSet<Disease> Diseases { get; set; }
         public DbSet<PatientDisease> PatientDiseases { get; set; }
         public DbSet<Feedback> Feedback { get; set; }
+        public DbSet<Invoice> Invoices { get; set; }
+        public DbSet<Payment> Payments { get; set; }
+        public DbSet<DicomFile> DicomFiles { get; set; }
+        public DbSet<DicomAnnotation> DicomAnnotations { get; set; }
+        public DbSet<AnalyticsData> AnalyticsData { get; set; }
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) :base(options)
         {
             
