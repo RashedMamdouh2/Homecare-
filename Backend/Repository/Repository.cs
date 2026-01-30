@@ -1,6 +1,9 @@
 ﻿
 using Homecare.Model;
+using Homecare.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 
@@ -18,34 +21,27 @@ namespace Homecare.Repository
             DbSet=context.Set<TEntity>();
             
         }
-        public async void DeleteById(int id)
-        {
-            var obj = await GetById(id);
-            DbSet.Remove(obj);
-        }
         public IEnumerable<TEntity> GetAll()
         {
             return DbSet.AsNoTracking();
         }
-        public async Task<TEntity> GetById(int id) 
+        public async Task<TEntity> GetAsync(int id) 
         {
-            return (await DbSet.FindAsync(id));
+            return (await DbSet.FindAsync(id))!;
         }
         public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter, string[] includes)
         {
             Expression<Func<TEntity, bool>> ex = filter;
 
-            var query = DbSet.AsQueryable();
+            var query = DbSet.AsQueryable().AsNoTracking();
             foreach (var include in includes)
             {
-                query = query.Include(include).AsNoTracking();
-
-
+                query = query.Include(include);
             }
             
-            return await query.FirstOrDefaultAsync(ex);
+            return (await query.FirstOrDefaultAsync(ex));
         }
-        public IEnumerable<TEntity> FindAll(Expression<Func<TEntity, bool>> filter, string[] includes, int take = -1, int skip = -1)
+        public IEnumerable<TEntity> FindAll(Expression<Func<TEntity, bool>> filter, string[] includes ,int take = -1, int skip = -1)
         {
 
             Expression<Func<TEntity, bool>> ex = filter;
@@ -55,24 +51,23 @@ namespace Homecare.Repository
             {
                 query = query.Include(include).AsNoTracking();
             }
-            var res = query.Where(ex);
+            query = query.Where(ex);
+            var res = query;
+            if (skip >= 0)
+            {
+                res = res.Skip(skip);
+                
+            }
             if (take >= 0)
             {
                 res = res.Take(take);
             }
-            if (skip >= 0)
-            {
-                res = res.Skip(skip);
-            }
             return res.AsEnumerable();
         }
-        public int Count()
+        public int Count(Expression<Func<TEntity, bool>> ? filter = null)
         {
-            return DbSet.Count();
-        }
-        public void UpdateById(TEntity entity)
-        {
-            DbSet.Update(entity);
+            if (filter is null) return DbSet.Count();
+            return DbSet.Count(filter);
         }
         public async Task AddAsync(TEntity entity)
         {
@@ -82,9 +77,14 @@ namespace Homecare.Repository
         {
             await DbSet.AddRangeAsync(entities);
         }
-        public  void Delete(TEntity entity)
+        public void Update(TEntity entity)
         {
-             DbSet.Remove(entity);
+            DbSet.Update(entity);
+        }
+        public async void Delete(int id)
+        {
+            var obj = await GetAsync(id);
+            DbSet.Remove(obj);
         }
 
     }

@@ -1,6 +1,6 @@
 ﻿using Homecare.Model;
 
-namespace Homecare.Repository
+namespace Homecare.Repository.Interfaces
 {
     public interface IUnitOfWork:IDisposable
     {
@@ -13,11 +13,7 @@ namespace Homecare.Repository
         public IRepository<Disease> Diseases { get;}
         public IRepository<PatientDisease> PatientDiseases { get;}
         public IRepository<Feedback> Feedbacks { get;}
-        public IRepository<Invoice> Invoices { get; }
-        public IRepository<Payment> Payments { get; }
         public IRepository<DicomFile> DicomFiles { get; }
-        public IRepository<DicomAnnotation> DicomAnnotations { get; }
-        public IRepository<AnalyticsData> AnalyticsData { get; }
 
 
 
