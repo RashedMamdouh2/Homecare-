@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Homecare.Model
 {
@@ -7,6 +8,9 @@ namespace Homecare.Model
     {
         [Required]
         public int Id { get; set; }
+        [ForeignKey(nameof(User))]
+        public string UserId{get;set;}
+        public ApplicationUser User {get;set;}
         [Required]
         public string Name { get; set; }
         [Required]
@@ -22,18 +26,17 @@ namespace Homecare.Model
        
         public string Image { get; set; }
         
-        public Subscription Subscription { get; set; }
-        [ForeignKey(nameof(Subscription))]
-        public int SubscriptionId { get; set; }
+     
         public List<Appointment> Appointements { get; set; }
         public List<Medication>Medications { get; set; }
         public List<PatientDisease>PatientDiseases { get; set; }
+        public DateTime CreatedAt { get; set; }
         public Patient()
         {
             Appointements = new();
             Medications = new();
             PatientDiseases = new();
-            SubscriptionId = 1;
+            CreatedAt= DateTime.Now;
         }
     }
    
