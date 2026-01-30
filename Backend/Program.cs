@@ -31,10 +31,10 @@ builder.Host.UseSerilog();
 
 builder.Services.AddControllers();
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
-builder.Services.AddScoped<IHangFireService, HangFireService>();
-builder.Services.AddScoped<IMessagingService, MessagingService>();
-builder.Services.AddScoped<IImageServices,ImageServices>();
-builder.Services.AddScoped<IPDFService,PDFService>();
+builder.Services.AddScoped<HangFireService>();
+builder.Services.AddScoped<IMessagingService, TwilioMessagingService>();
+builder.Services.AddScoped<ImageServices>();
+builder.Services.AddScoped<IPDFService,QuestPDFService>();
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(setup =>
 {
 
@@ -48,13 +48,13 @@ builder.Services.AddOptions<StripeOptions>().Bind(builder.Configuration.GetSecti
 
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("productionconnection"))
+    options.UseSqlServer(builder.Configuration.GetConnectionString("localconnection"))
 );
 builder.Services.AddHangfire(configuration => configuration
         .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
         .UseSimpleAssemblyNameTypeSerializer()
         .UseRecommendedSerializerSettings()
-        .UseSqlServerStorage(builder.Configuration.GetConnectionString("productionconnection")));
+        .UseSqlServerStorage(builder.Configuration.GetConnectionString("localconnection")));
 
 //// Add the processing server as IHostedService
 builder.Services.AddHangfireServer();
@@ -132,7 +132,7 @@ app.UseCors("policy1");
 app.UseAuthorization();
 app.UseHangfireDashboard("/hangfireDashboard");
 app.MapControllers();
-RecurringJob.AddOrUpdate<IHangFireService>(
+RecurringJob.AddOrUpdate<HangFireService>(
     job => job.CheckMedicaitions(),
     Cron.Minutely
 );
