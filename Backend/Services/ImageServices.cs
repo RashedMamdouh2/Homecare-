@@ -6,7 +6,7 @@ using System;
 
 namespace Homecare.Services
 {
-    public class ImageServices:IImageServices
+    public class ImageServices
     {
         private readonly IWebHostEnvironment _env;
 

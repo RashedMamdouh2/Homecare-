@@ -5,7 +5,7 @@ using Microsoft.Identity.Client;
 
 namespace Homecare.Services
 {
-    public class HangFireService : IHangFireService
+    public class HangFireService
         
     {
         private readonly IUnitOfWork unitOfWork;

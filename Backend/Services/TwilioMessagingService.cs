@@ -4,16 +4,16 @@ using Twilio.Types;
 
 namespace Homecare.Services
 {
-    public class MessagingService:IMessagingService
+    public class TwilioMessagingService:IMessagingService
     {
         private readonly IConfiguration config;
-        private readonly ILogger<MessagingService> logger;
+        private readonly ILogger<TwilioMessagingService> logger;
         private readonly string _accountSid;
         private readonly string _authToken;
         private readonly string _fromNumber;
         
 
-        public MessagingService(IConfiguration config,ILogger<MessagingService>_logger)
+        public TwilioMessagingService(IConfiguration config,ILogger<TwilioMessagingService>_logger)
         {
             this.config = config;
             logger = _logger;
