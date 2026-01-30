@@ -58,17 +58,11 @@ namespace Homecare.Migrations
                     b.Property<string>("PasswordHash")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("PatientId")
-                        .HasColumnType("int");
-
                     b.Property<string>("PhoneNumber")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
-
-                    b.Property<int?>("PhysicianId")
-                        .HasColumnType("int");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("nvarchar(max)");
@@ -89,10 +83,6 @@ namespace Homecare.Migrations
                         .IsUnique()
                         .HasDatabaseName("UserNameIndex")
                         .HasFilter("[NormalizedUserName] IS NOT NULL");
-
-                    b.HasIndex("PatientId");
-
-                    b.HasIndex("PhysicianId");
 
                     b.ToTable("AspNetUsers", (string)null);
                 });
@@ -139,6 +129,91 @@ namespace Homecare.Migrations
                     b.HasIndex("PhysicianId");
 
                     b.ToTable("Appointements");
+                });
+
+            modelBuilder.Entity("Homecare.Model.DicomFile", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AIAnalysisResult")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("AnalysisDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("AnalysisStatus")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("BodyPart")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("ConfidenceScore")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FilePath")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<long>("FileSize")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("Modality")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OriginalFileName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("PatientId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PhysicianId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SOPInstanceUID")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SeriesInstanceUID")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StudyDescription")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("StudyInstanceUID")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("UploadDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PatientId");
+
+                    b.HasIndex("PhysicianId");
+
+                    b.ToTable("DicomFiles");
                 });
 
             modelBuilder.Entity("Homecare.Model.Disease", b =>
@@ -240,6 +315,12 @@ namespace Homecare.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DateOfBirth")
+                        .HasColumnType("datetime2");
+
                     b.Property<string>("Gender")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -256,12 +337,13 @@ namespace Homecare.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("SubscriptionId")
-                        .HasColumnType("int");
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SubscriptionId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Patients");
                 });
@@ -326,9 +408,15 @@ namespace Homecare.Migrations
                     b.Property<int>("SpecializationId")
                         .HasColumnType("int");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SpecializationId");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Physicians");
                 });
@@ -389,25 +477,6 @@ namespace Homecare.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Specializations");
-                });
-
-            modelBuilder.Entity("Homecare.Model.Subscription", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("Name")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Subscriptions");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -543,21 +612,6 @@ namespace Homecare.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("Homecare.Model.ApplicationUser", b =>
-                {
-                    b.HasOne("Homecare.Model.Patient", "Patient")
-                        .WithMany()
-                        .HasForeignKey("PatientId");
-
-                    b.HasOne("Homecare.Model.Physician", "Physician")
-                        .WithMany()
-                        .HasForeignKey("PhysicianId");
-
-                    b.Navigation("Patient");
-
-                    b.Navigation("Physician");
-                });
-
             modelBuilder.Entity("Homecare.Model.Appointment", b =>
                 {
                     b.HasOne("Homecare.Model.Patient", "Patient")
@@ -568,6 +622,25 @@ namespace Homecare.Migrations
 
                     b.HasOne("Homecare.Model.Physician", "Physician")
                         .WithMany("ConfirmedAppointements")
+                        .HasForeignKey("PhysicianId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Patient");
+
+                    b.Navigation("Physician");
+                });
+
+            modelBuilder.Entity("Homecare.Model.DicomFile", b =>
+                {
+                    b.HasOne("Homecare.Model.Patient", "Patient")
+                        .WithMany()
+                        .HasForeignKey("PatientId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Homecare.Model.Physician", "Physician")
+                        .WithMany()
                         .HasForeignKey("PhysicianId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -611,13 +684,13 @@ namespace Homecare.Migrations
 
             modelBuilder.Entity("Homecare.Model.Patient", b =>
                 {
-                    b.HasOne("Homecare.Model.Subscription", "Subscription")
+                    b.HasOne("Homecare.Model.ApplicationUser", "User")
                         .WithMany()
-                        .HasForeignKey("SubscriptionId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Subscription");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Homecare.Model.PatientDisease", b =>
@@ -647,7 +720,15 @@ namespace Homecare.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Homecare.Model.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.Navigation("Specialization");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Homecare.Model.Report", b =>
