@@ -1,24 +1,30 @@
 ﻿using Homecare.DTO;
 using Homecare.Model;
-using Homecare.Repository;
+using Homecare.Repository.Interfaces;
 using Homecare.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using QuestPDF.Helpers;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace Homecare.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class PhysicianController : ControllerBase
     {
         private readonly IUnitOfWork unitOfWork;
-        private readonly IImageServices imageServices;
+        private readonly ImageServices imageServices;
+        private readonly LinkGenerator linkGenerator;
 
-        public PhysicianController(IUnitOfWork unitOfWork, IImageServices imageServices)
+        public PhysicianController(IUnitOfWork unitOfWork, ImageServices imageServices, LinkGenerator linkGenerator)
         {
             this.unitOfWork = unitOfWork;
             this.imageServices = imageServices;
+            this.linkGenerator = linkGenerator;
         }
         [HttpGet("GetPhysician/{id:int}")]
         public async Task<IActionResult> GetPhysician(int id)
@@ -43,7 +49,7 @@ namespace Homecare.Controllers
         [HttpGet("GetAllPhysicians")]
         public IActionResult GetAllPhysicians()
         {
-
+            
             var Physicians = unitOfWork.Physicians.FindAll(p=>true,new string[] { nameof(Model.Physician.Specialization)}).OrderBy(p => p.Name).Select(p => new PhysicianSendDto
             {
                 Id = p.Id,
@@ -57,9 +63,11 @@ namespace Homecare.Controllers
             return Ok(Physicians);
         }
         [HttpGet("GetPhysicianAppointments/{physicianId:int}")]
-        [Authorize(Roles ="admin,physician")]
+  
         public  IActionResult GetAppointment(int physicianId)
         {
+            var authUsrPhysicianId = User.Claims.FirstOrDefault(c => c.Type == "PhysicianId").Value ;
+            if (authUsrPhysicianId != physicianId.ToString()) return Forbid();
             var AppointmentDB = unitOfWork.Appointments.FindAll(app => app.PhysicianId == physicianId, new string[] { nameof(Model.Appointment.Report), nameof(Patient), nameof(Physician) }).ToList();
 
 
@@ -91,8 +99,11 @@ namespace Homecare.Controllers
             return Ok(availableHoursAtThisDay);
         }
         [HttpGet("feedbacks/{physicianId:int}")]
+        [AllowAnonymous]
         public IActionResult GetPhysicanFeedbacks(int physicianId)
         {
+
+
             var feedback = unitOfWork.Feedbacks.FindAll(feed => feed.PhysicianId == physicianId, new string[] { nameof(Feedback.Patient) });
             return Ok(feedback.Select(feedbackDb=>new FeedbackDto
             {
@@ -105,29 +116,42 @@ namespace Homecare.Controllers
 
             }));
         }
-        [HttpPost("AddPhysician")]
-        [Authorize(Roles ="admin")]
-        public async Task<IActionResult> AddPhysician([FromForm] PhysicianCreateDto PhysicianDto)
+        [HttpGet("GetMyPatients/{physicianId:int}")]
+        public async Task<IActionResult> GetPatientsOfPhysician(int physicianId, int pageNumber)
         {
-            var allowedTypes = new[] { "image/jpeg", "image/png", "image/jpg" };
-            if (PhysicianDto.Image != null && (!allowedTypes.Contains(PhysicianDto.Image.ContentType.ToLower()) || PhysicianDto.Image.Length > 1000 * 1024))
-            {
-                return BadRequest("Image Should be png, jpg or jpeg of Maximum 1000 KB Size");
-            }
-            var p = new Physician
-            {
-                Name = PhysicianDto.Name,
-                SpecializationId= PhysicianDto.SpecializationId,
-                ClinicalAddress= PhysicianDto.ClinicalAddress,
-                Image = await imageServices.ReadImage(PhysicianDto.Image)
 
-            };
-            await unitOfWork.Physicians.AddAsync(p);
-            await unitOfWork.SaveDbAsync();
-            return CreatedAtAction(nameof(GetPhysician), routeValues: new { id = p.Id }, PhysicianDto);
+            var physician = await unitOfWork.Physicians.GetByIdAsync(physicianId);
+            if (physician is null) return NotFound("Wrong Physician ID");
+            var pageSize = 5;
+            int skip = (pageNumber - 1) * pageSize;
+            int totalRecords = unitOfWork.Appointments.Count(app => app.PhysicianId == physicianId);
+            var totalPages =totalRecords / pageSize + (totalRecords% pageSize == 0?0:1);
+            var appointments = unitOfWork.Appointments.FindAll(app => app.PhysicianId == physicianId, new string[] { nameof(Appointment.Patient) },take:pageSize,skip).DistinctBy(app=>app.PatientId);
+            if (appointments is not null && appointments.Any()) return Ok(new
+            {
+                patients = appointments.Select(app => new Patient
+                {
+                    Id=app.Patient.Id,
+                    Name=app.Patient.Name,
+                    Address=app.Patient.Address,
+                    City=app.Patient.City,
+                    CreatedAt=app.Patient.CreatedAt,
+                    Gender=app.Patient.Gender,
+                    Image=app.Patient.Image,
+                    Phone=app.Patient.Phone,
+                    
+
+
+                }),
+                currentPage = pageNumber,
+                totalPages
+
+            });
+            return Ok();
         }
+      
         [HttpPost("FreeAppointments/{physicianId:int}")]
-        [Authorize(Roles="physician")]
+        
         public async Task<IActionResult> AddPhysicianFreeAppointments(int physicianId,[FromBody] List<DateTime>freeTimes)
         {
             var physician= await unitOfWork.Physicians.FindAsync(ph => ph.Id == physicianId, new string[] {  });
@@ -142,9 +166,9 @@ namespace Homecare.Controllers
         [HttpPost("feedbacks/{physicianId:int}")]
         public async Task<IActionResult> AddFeedbackToPhysician(int physicianId,FeedbackDto feedback)
         {
-            var patient =await unitOfWork.Patients.GetById(feedback.PatientId);
+            var patient =await unitOfWork.Patients.GetByIdAsync(feedback.PatientId);
             if (patient is null) return NotFound("Wrong Patient ID");
-            var physician =await unitOfWork.Physicians.GetById(feedback.PhysicianId);
+            var physician =await unitOfWork.Physicians.GetByIdAsync(feedback.PhysicianId);
             if (physician is null) return NotFound("Wrong Physician ID");
             if (feedback.rate < 0 || feedback.rate > 5) return BadRequest("Wrong rate");
             var newFeedback = new Feedback
@@ -167,14 +191,14 @@ namespace Homecare.Controllers
         [HttpPut("{id:int}")]
         public async Task<IActionResult> UpdatePhysician(PhysicianCreateDto updated, int id)
         {
-            var old = await unitOfWork.Physicians.GetById(id);
+            var old = await unitOfWork.Physicians.GetByIdAsync(id);
             if (old is null) return NotFound("Wrong ID");
             old.Name = updated.Name;
             old.ClinicalAddress = updated.ClinicalAddress;
             old.SpecializationId= updated.SpecializationId;
             old.Image = await imageServices.ReadImage(updated.Image);
             old.SessionPrice= updated.SessionPrice;
-            unitOfWork.Physicians.UpdateById(old);
+            unitOfWork.Physicians.Update(old);
             await unitOfWork.SaveDbAsync();
             return CreatedAtAction(nameof(GetPhysician), routeValues: new { id = old.Id }, updated);
 
@@ -184,9 +208,9 @@ namespace Homecare.Controllers
         [Authorize(Roles ="admin")]
         public async Task<IActionResult> RemovePhysician(int id)
         {
-            var Physician = await unitOfWork.Physicians.GetById(id);
+            var Physician = await unitOfWork.Physicians.GetByIdAsync(id);
             if (Physician is null) return NotFound("Wrong ID");
-            unitOfWork.Physicians.Delete(Physician);
+            unitOfWork.Physicians.Delete(Physician.Id);
             await unitOfWork.SaveDbAsync();
             return Ok();
         }
