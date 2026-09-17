@@ -11,8 +11,8 @@ namespace Homecare.Repository
 {
     public class Repository<TEntity> : IRepository<TEntity> where TEntity : class
     {
-        private readonly ApplicationDbContext context;
-        private readonly DbSet<TEntity> DbSet;
+        protected readonly ApplicationDbContext context;
+        protected readonly DbSet<TEntity> DbSet;
 
 
         public Repository(ApplicationDbContext context)
@@ -21,15 +21,27 @@ namespace Homecare.Repository
             DbSet=context.Set<TEntity>();
             
         }
+        public async Task<TEntity>GetByIdAsync(int id)
+        {
+            return await DbSet.FindAsync(id);
+        }
         public IEnumerable<TEntity> GetAll()
         {
             return DbSet.AsNoTracking();
         }
-        public async Task<TEntity> GetAsync(int id) 
+        public async Task<TEntity> GetAsync(Expression<Func<TEntity, bool>> filter, string[] includes) 
         {
-            return (await DbSet.FindAsync(id))!;
+            Expression<Func<TEntity, bool>> ex = filter;
+
+            var query = DbSet.AsQueryable();
+            foreach (var include in includes)
+            {
+                query = query.Include(include);
+            }
+
+            return (await query.FirstOrDefaultAsync(ex));
         }
-        public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter, string[] includes)
+        public async Task<TEntity> FindAsync(Expression<Func<TEntity, bool>> filter, string[]? includes)
         {
             Expression<Func<TEntity, bool>> ex = filter;
 
@@ -41,7 +53,7 @@ namespace Homecare.Repository
             
             return (await query.FirstOrDefaultAsync(ex));
         }
-        public IEnumerable<TEntity> FindAll(Expression<Func<TEntity, bool>> filter, string[] includes ,int take = -1, int skip = -1)
+        public IEnumerable<TEntity> FindAll(Expression<Func<TEntity, bool>> filter, string[]? includes ,int take = -1, int skip = -1)
         {
 
             Expression<Func<TEntity, bool>> ex = filter;
@@ -81,9 +93,9 @@ namespace Homecare.Repository
         {
             DbSet.Update(entity);
         }
-        public async void Delete(int id)
+        public async Task DeleteAsync(int id)
         {
-            var obj = await GetAsync(id);
+            var obj = await GetByIdAsync(id);
             DbSet.Remove(obj);
         }
 

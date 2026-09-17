@@ -1,4 +1,5 @@
 ﻿using Homecare.Model;
+using Homecare.Repository.Interfaces;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 
 namespace Homecare.Repository
@@ -17,6 +18,7 @@ namespace Homecare.Repository
         public IRepository<Feedback> Feedbacks { get;private set; }
         public IRepository<DicomFile> DicomFiles { get; private set; }
 
+     
 
         public UnitOfWork(ApplicationDbContext context)
         {

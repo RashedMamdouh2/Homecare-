@@ -216,7 +216,7 @@ namespace Homecare.Controllers
         {
             var Appointment = await unitOfWork.Appointments.FindAsync(ap=>ap.Id==id,new string[] { });
             if (Appointment is null) return NotFound("Wrong ID");
-            unitOfWork.Appointments.Delete(Appointment.Id);
+           await unitOfWork.Appointments.DeleteAsync(Appointment.Id);
             await unitOfWork.SaveDbAsync();
             return Ok();
         }
