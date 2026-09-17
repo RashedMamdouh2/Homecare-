@@ -1,11 +1,9 @@
 ﻿using Homecare.DTO;
 using Homecare.Model;
-using Homecare.Repository;
+using Homecare.Repository.Interfaces;
 using Homecare.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -20,11 +18,11 @@ namespace Homecare.Controllers
         private readonly IUnitOfWork unitOfWork;
         private readonly UserManager<ApplicationUser> userManager;
         private readonly RoleManager<IdentityRole> roleManager;
-        private readonly IImageServices imageServices;
+        private readonly ImageServices imageServices;
         private readonly SignInManager<ApplicationUser> signInManager;
         private readonly IConfiguration config;
 
-        public AccountController(IUnitOfWork unitOfWork,UserManager<ApplicationUser> userManager,RoleManager<IdentityRole> roleManager,IImageServices imageServices,
+        public AccountController(IUnitOfWork unitOfWork,UserManager<ApplicationUser> userManager,RoleManager<IdentityRole> roleManager,ImageServices imageServices,
             
             SignInManager<ApplicationUser> signInManager, IConfiguration config)
         {
@@ -52,11 +50,14 @@ namespace Homecare.Controllers
         [HttpPost("Signup/Patient")]
         public async Task<IActionResult> PatientSignup([FromForm]PatientCreateDto newPatient)
         {
+            
+          
             var newUser = new ApplicationUser
             {
                 Email=newPatient.Email,
                 UserName=newPatient.UserName,
                 PhoneNumber=newPatient.Phone,
+                //DateOfBirth=newPatient.DateOfBirth
                 
                 
             };
@@ -65,13 +66,11 @@ namespace Homecare.Controllers
             if (result.Succeeded)
             {
                 await userManager.AddToRoleAsync(newUser, "patient");
-                var allowedTypes = new[] { "image/jpeg", "image/png", "image/jpg" };
-                if (newPatient.Image != null && (!allowedTypes.Contains(newPatient.Image.ContentType.ToLower()) || newPatient.Image.Length > 1000 * 1024))
-                {
-                    return BadRequest("Image Should be png, jpg or jpeg of Maximum 1000 KB Size");
-                }
+                
+                
                 var p = new Patient
                 {
+                    UserId=newUser.Id,
                     Name = newPatient.Name,
                     Phone = newPatient.Phone,
                     Address = newPatient.Address,
@@ -82,8 +81,6 @@ namespace Homecare.Controllers
                 };
                 await unitOfWork.Patients.AddAsync(p);
                 await unitOfWork.SaveDbAsync();
-                newUser.PatientId = p.Id;
-                await userManager.UpdateAsync(newUser);
 
                 return Ok(p);
 
@@ -99,7 +96,7 @@ namespace Homecare.Controllers
                 Email=PhysicianDto.Email,
                 UserName=PhysicianDto.UserName,
                 PhoneNumber=PhysicianDto.Phone,
-                
+                //DateOfBirth=PhysicianDto.DateOfBirth
                 
             };
            
@@ -108,13 +105,10 @@ namespace Homecare.Controllers
             {
                 await userManager.AddToRoleAsync(newUser, "physician");
 
-                var allowedTypes = new[] { "image/jpeg", "image/png", "image/jpg" };
-                if (PhysicianDto.Image != null && (!allowedTypes.Contains(PhysicianDto.Image.ContentType.ToLower()) || PhysicianDto.Image.Length > 1000 * 1024))
-                {
-                    return BadRequest("Image Should be png, jpg or jpeg of Maximum 1000 KB Size");
-                }
+                
                 var p = new Physician
                 {
+                    UserId=newUser.Id,
                     Name = PhysicianDto.Name,
                     SpecializationId = PhysicianDto.SpecializationId,
                     ClinicalAddress = PhysicianDto.ClinicalAddress,
@@ -124,9 +118,6 @@ namespace Homecare.Controllers
                 };
                 await unitOfWork.Physicians.AddAsync(p);
                 await unitOfWork.SaveDbAsync();
-                newUser.PhysicianId= p.Id;
-                await userManager.UpdateAsync(newUser);
-
 
 
                 return Ok(p);
@@ -139,6 +130,7 @@ namespace Homecare.Controllers
         public async Task<IActionResult> Login([FromBody]LoginDto loginDto)
         {
             var DbUser = await userManager.FindByNameAsync(loginDto.Username);
+            if (DbUser is null) return NotFound("Wrong Username or Password");
             var IsCorrectPassword =await signInManager.CheckPasswordSignInAsync(DbUser, loginDto.Password, lockoutOnFailure:false);
             
             if (IsCorrectPassword.Succeeded)
@@ -151,8 +143,10 @@ namespace Homecare.Controllers
                             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
 
                         };
-                if (DbUser.PatientId is not null) claims.Add(new Claim("PatientId", DbUser.PatientId.ToString()));
-                if (DbUser.PhysicianId is not null) claims.Add(new Claim("PhysicianId", DbUser.PhysicianId.ToString()));
+                var Patient=await unitOfWork.Patients.FindAsync(p=>p.UserId==DbUser.Id,new string []{});
+                if (Patient is not null) claims.Add(new Claim("PatientId",Patient.Id.ToString()));
+                var Physician=await unitOfWork.Physicians.FindAsync(p=>p.UserId==DbUser.Id,new string []{});
+                if (Physician is not null) claims.Add(new Claim("PhysicianId", Physician.Id.ToString()));
                 foreach (var role in roles)
                 {
                     claims.Add(new Claim(ClaimTypes.Role, role));
@@ -174,6 +168,7 @@ namespace Homecare.Controllers
             }
             return NotFound("Username or Password is invalid");
         }
-
+        
     }
 }
+
