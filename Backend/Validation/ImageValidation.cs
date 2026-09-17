@@ -14,9 +14,8 @@ namespace Homecare.Validation
         }
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
-            var image = (IFormFile) value;
-            if (image == null) { return null; }
-            if (image != null && (!allowedTypes.Contains(image.ContentType.ToLower()) || image.Length > 1000 * allowedSize))
+            if(value is not IFormFile image) return new ValidationResult("Image Should be png, jpg or jpeg of Maximum 1000 KB Size");
+            if (image != null && (!allowedTypes.Contains(image.ContentType.ToLower()) || image.Length > 1024 * allowedSize))
             {
                 return new ValidationResult("Image Should be png, jpg or jpeg of Maximum 1000 KB Size");
             }

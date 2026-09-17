@@ -6,8 +6,14 @@ namespace Homecare.Validation
     {
         protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
         {
-            var appointmentDate = (DateOnly)value;
-            if (appointmentDate < DateOnly.FromDateTime(DateTime.Today))
+
+            if (value is not DateTime appointmentDate)
+            {
+                return new ValidationResult("Invalid Date For Appointment");
+            }
+
+            var appointmentDay = DateOnly.FromDateTime(appointmentDate);
+            if (appointmentDay < DateOnly.FromDateTime(DateTime.Today))
             {
                 return new ValidationResult("Invalid Date For Appointment");
             }
