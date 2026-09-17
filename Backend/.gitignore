@@ -7,5 +7,8 @@ obj/
 appsettings.json
 appsettings.Development.json
 appsettings.*.json
+# Application logs
+logs/
+*.log
 frontend/*
 
