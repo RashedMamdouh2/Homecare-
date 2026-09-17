@@ -1,5 +1,9 @@
-﻿using Homecare.DTO;
+﻿using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Homecare.DTO;
 using Homecare.Options;
+using Homecare.Repository.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
@@ -10,30 +14,37 @@ namespace Homecare.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class StripeController : ControllerBase
     {
         private readonly StripeOptions stripeOptions;
+        private readonly IUnitOfWork unitOfWork;
 
-        public StripeController(IOptionsSnapshot<StripeOptions> _stripeOptions)
+        public StripeController(IOptionsSnapshot<StripeOptions> _stripeOptions,IUnitOfWork unitOfWork)
         {
             stripeOptions = _stripeOptions.Value;
+            this.unitOfWork = unitOfWork;
         }
         [HttpPost]
-        public async Task<IActionResult> PaySession(PaymentDetailsDto paymentDetails)
+        
+        public async Task<IActionResult> PaySession(int physicianId)
         {
 
             
-            var origin = $"{Request.Scheme}://{Request.Host}";
+            var bookedPhysician = await unitOfWork.Physicians.GetByIdAsync(physicianId);
+            if(bookedPhysician is null) return NotFound("This Physician is not found");
+            var userId = User.Claims.First(c=>c.Type==ClaimTypes.NameIdentifier)!.Value;
+            var patient = await unitOfWork.Patients.FindAsync(p=>p.UserId==userId,[]);
             StripeConfiguration.ApiKey=stripeOptions.ApiKey;
             var stripeSession = new SessionService();
             var stripeCheckoutSession = await stripeSession.CreateAsync(
                 new SessionCreateOptions
                 {
                     Mode = "payment",
-                    ClientReferenceId = paymentDetails.PatientUserId,
-                    CustomerEmail = "random@gmail.com",
-                    SuccessUrl = paymentDetails.SuccessUrl,
-                    CancelUrl = paymentDetails.CancelUrl,
+                    ClientReferenceId = patient.UserId,
+                    CustomerEmail = User.Claims.First(c=>c.Type==ClaimTypes.Email).Value,
+                    // SuccessUrl = paymentDetails.SuccessUrl,
+                    // CancelUrl = paymentDetails.CancelUrl,
                     LineItems = new() {
 
                         new(){
@@ -45,7 +56,7 @@ namespace Homecare.Controllers
                                 {
                                     Name="Session Booking",
                                 },
-                                UnitAmountDecimal=paymentDetails.SessionPrice *100
+                                UnitAmountDecimal=bookedPhysician.SessionPrice *100
 
                             }
                             ,Quantity=1

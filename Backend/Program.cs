@@ -1,17 +1,22 @@
-﻿using Hangfire;
+﻿using System.Net;
+using Hangfire;
 using Hangfire.Logging;
 using Hangfire.SqlServer;
 using Homecare.Model;
 using Homecare.Options;
 using Homecare.Repository;
+using Homecare.Repository.Interfaces;
 using Homecare.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Serilog;
 using System.Text;
+
 var builder = WebApplication.CreateBuilder(args);
 
 
@@ -29,7 +34,11 @@ builder.Host.UseSerilog();
 
 
 
-builder.Services.AddControllers();
+builder.Services.AddControllers(options=> {
+
+    options.ReturnHttpNotAcceptable = true;
+   
+}).AddXmlSerializerFormatters();
 builder.Services.AddScoped<IUnitOfWork,UnitOfWork>();
 builder.Services.AddScoped<HangFireService>();
 builder.Services.AddScoped<IMessagingService, TwilioMessagingService>();
@@ -48,7 +57,7 @@ builder.Services.AddOptions<StripeOptions>().Bind(builder.Configuration.GetSecti
 
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("localconnection"))
+    options.UseSqlServer(builder.Configuration.GetConnectionString("stableDb"))
 );
 builder.Services.AddHangfire(configuration => configuration
         .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
@@ -86,7 +95,6 @@ builder.Services.AddSwaggerGen(c =>
         }
     });
 });
-
 
 
 
@@ -129,11 +137,55 @@ app.UseStaticFiles();
 
 app.UseHttpsRedirection();
 app.UseCors("policy1");
+app.UseAuthentication();
 app.UseAuthorization();
-app.UseHangfireDashboard("/hangfireDashboard");
+app.UseHangfireDashboard("/hangfireDashboard",new DashboardOptions
+{
+    Authorization = new [] {
+        new HangfireAuthorizationFilter()
+    }
+
+});
 app.MapControllers();
 RecurringJob.AddOrUpdate<HangFireService>(
     job => job.CheckMedicaitions(),
     Cron.Minutely
 );
 app.Run();
+public class TrackActionTimeFilter : IAsyncActionFilter
+{
+    public Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+    {
+        throw new NotImplementedException();
+    }
+}
+public class TrackActionTimeFilterV2 :  IActionFilter
+{
+    public void OnActionExecuting(ActionExecutingContext context)
+    {
+        //before logic
+
+        var start = DateTime.UtcNow;
+        context.HttpContext.Items.Add("start", start);
+    }
+    public void OnActionExecuted(ActionExecutedContext context)
+    {
+        //after excecution
+        var end = DateTime.UtcNow;
+        var start = (DateTime)context.HttpContext.Items["start"]!;
+        var elapsedTime = end.Millisecond - start.Millisecond;
+        context.HttpContext.Response.Headers["X-Elapsed-Time"]= elapsedTime.ToString();
+
+    }
+
+    
+
+}
+public class TrackActionTimeFilterV3 : ActionFilterAttribute
+{
+    public override Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
+    {
+        return base.OnActionExecutionAsync(context, next);
+    }
+
+}
