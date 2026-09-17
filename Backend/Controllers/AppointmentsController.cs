@@ -1,32 +1,34 @@
 ﻿using Homecare.DTO;
 using Homecare.Model;
-using Homecare.Repository;
+using Homecare.Repository.Interfaces;
 using Homecare.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Buffers.Text;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 
 namespace Homecare.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-  
+    [Authorize]
     public class AppointmentsController : ControllerBase
     {
         private readonly IUnitOfWork unitOfWork;
-        private readonly IImageServices imageServices;
+        private readonly ImageServices imageServices;
         private readonly IPDFService pdfService;
 
-        public AppointmentsController(IUnitOfWork unitOfWork, IImageServices imageServices,IPDFService pdfService)
+        public AppointmentsController(IUnitOfWork unitOfWork, ImageServices imageServices,IPDFService pdfService)
         {
             this.unitOfWork = unitOfWork;
             this.imageServices = imageServices;
             this.pdfService = pdfService;
         }
-        [HttpGet("GetAppointment/{id:guid}")]
-        public async Task<IActionResult> GetAppointment(Guid id)
+        [HttpGet("GetAppointment/{id:int}")]
+        public async Task<IActionResult> GetAppointment(int id)
         {
             var AppointmentDB = await unitOfWork.Appointments.FindAsync(ap=>ap.Id==id,new string[] {nameof(Model.Appointment.Patient),nameof(Model.Appointment.Physician),nameof(Model.Appointment.Report)});
            
@@ -35,7 +37,7 @@ namespace Homecare.Controllers
             {
                 return NotFound("Wrong ID");
             }
-            List<MedicationSendAndCreateDto> meds = null;
+            List<MedicationSendAndCreateDto> meds=null;
             string pdf = "";
             if (AppointmentDB.Report is not null)
             {
@@ -111,9 +113,11 @@ namespace Homecare.Controllers
             });
             return Ok(Appointments);
         }
+       
         [HttpPost("BookAppointment")]
         public async Task<IActionResult> AddAppointment( AppointmentCreateDto AppointmentToBookDto)
         {
+
             var PhysicianAppointmentAtSameTime = await unitOfWork.Appointments.FindAsync(existedAppointment => 
             existedAppointment.PhysicianId == AppointmentToBookDto.PhysicianId
             &&existedAppointment.AppointmentDate==AppointmentToBookDto.AppointmentDate&& 
@@ -136,27 +140,39 @@ namespace Homecare.Controllers
             {
                 return BadRequest("This Patient Has an Appointment At The same time");
             }
+            var physician = await unitOfWork.Physicians.GetByIdAsync(AppointmentToBookDto.PhysicianId);
+            DateTime result =
+     AppointmentToBookDto.AppointmentDate;
+
+
+            if (!physician.AvailableTimeTable.Contains(result)) return BadRequest("No Avaliable appointments at this time");
+
             var p = new Appointment
             {
                 StartTime = AppointmentToBookDto.StartTime,
                 EndTime = AppointmentToBookDto.EndTime,
-                MeetingAddress = AppointmentToBookDto.MeetingAddress,
+                MeetingAddress = AppointmentToBookDto.MeetingAddress?? "",
                 AppointmentDate = AppointmentToBookDto.AppointmentDate,
-                PhysicianNotes=AppointmentToBookDto.PhysicianNotes,
+                PhysicianNotes=AppointmentToBookDto.PhysicianNotes??"",
                 PatientId=AppointmentToBookDto.patientId,
                 PhysicianId=AppointmentToBookDto.PhysicianId
 
             };
+            physician.AvailableTimeTable.Remove(result);
             await unitOfWork.Appointments.AddAsync(p);
             await unitOfWork.SaveDbAsync();
             return CreatedAtAction(nameof(GetAppointment), routeValues: new { id = p.Id }, AppointmentToBookDto);
         }
-        [HttpPost("Add/Appointment/Report/{appointmentId:guid}")]
-        public async Task<IActionResult> AddReport(ReportCreateDto reportToCreate,[FromRoute] Guid appointmentId)
+        [HttpPost("Add/Appointment/Report/{appointmentId:int}")]
+        public async Task<IActionResult> AddReport(ReportCreateDto reportToCreate,[FromRoute] int appointmentId)
         {
             var appointment = await unitOfWork.Appointments.FindAsync(app=>app.Id==appointmentId,new string[] { nameof(Appointment.Report)});
             if (appointment is null) return NotFound("Wrong ID");
             if(appointment.Report is not null) return BadRequest("This Appointment Already Has A Report");
+            var patient = await unitOfWork.Patients.FindAsync(p => p.Id == reportToCreate.patientId, new string[] { });
+            var physician = await unitOfWork.Physicians.GetByIdAsync( reportToCreate.PhysicianId);
+            reportToCreate.PatientName = patient.Name;
+            reportToCreate.PhysicianName= physician.Name;
             var report = new Report
             {
                 AppointmentId=appointment.Id,
@@ -180,10 +196,10 @@ namespace Homecare.Controllers
 
             };
             //add the medications to the patient as well
-            var patient = await unitOfWork.Patients.FindAsync(p=>p.Id==reportToCreate.patientId,new string[] { });
             patient.Medications.AddRange(report.Medications);
 
             await unitOfWork.Reports.AddAsync(report);
+            physician.AvailableTimeTable.Remove(appointment.AppointmentDate);
             await unitOfWork.SaveDbAsync();
             return CreatedAtAction(nameof(GetAppointment), routeValues:new
             {
@@ -195,17 +211,17 @@ namespace Homecare.Controllers
 
 
         }
-        [HttpDelete("{id:guid}")]
-        public async Task<IActionResult> RemoveAppointment([FromRoute]Guid id)
+        [HttpDelete("{id:int}")]
+        public async Task<IActionResult> RemoveAppointment([FromRoute]int id)
         {
             var Appointment = await unitOfWork.Appointments.FindAsync(ap=>ap.Id==id,new string[] { });
             if (Appointment is null) return NotFound("Wrong ID");
-            unitOfWork.Appointments.Delete(Appointment);
+            unitOfWork.Appointments.Delete(Appointment.Id);
             await unitOfWork.SaveDbAsync();
             return Ok();
         }
-        [HttpPut("{id:guid}")]
-        public async Task<IActionResult> UpdateAppointment(AppointmentCreateDto updated, Guid id)
+        [HttpPut("{id:int}")]
+        public async Task<IActionResult> UpdateAppointment(AppointmentCreateDto updated, int id)
         {
             var old = await unitOfWork.Appointments.FindAsync(app=>app.Id==id,new string[] { });
             if (old is null) return NotFound("Wrong ID");
@@ -216,7 +232,7 @@ namespace Homecare.Controllers
             old.PatientId = updated.patientId;
             old.PhysicianId = updated.PhysicianId;
             old.PhysicianNotes = updated.PhysicianNotes;
-            unitOfWork.Appointments.UpdateById(old);
+            unitOfWork.Appointments.Update(old);
             await unitOfWork.SaveDbAsync();
             return CreatedAtAction(nameof(GetAppointment), routeValues: new { id = old.Id }, updated);
 
