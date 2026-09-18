@@ -5,6 +5,8 @@
         public string Descritpion { get; set; }
         public int patientId { get; set; }
         public int PhysicianId { get; set; }
+        public string ?PatientName { get; set; }
+        public string ?PhysicianName { get; set; }
         public List<MedicationSendAndCreateDto> Medications { get; set; }
     }
 }

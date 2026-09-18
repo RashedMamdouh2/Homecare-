@@ -1,5 +1,6 @@
 ﻿using Homecare.Model;
-using Homecare.Repository;
+using Homecare.Repository.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Text;
@@ -8,7 +9,7 @@ namespace Homecare.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-   
+    [Authorize]
     public class DiseasesController : ControllerBase
     {
         private readonly IUnitOfWork unitOfWork;
@@ -20,7 +21,7 @@ namespace Homecare.Controllers
         [HttpGet("search")]
         public  IActionResult FindDiseasesByName([FromQuery]string name)
         {
-            var diseases=unitOfWork.Diseases.FindAll(dis => dis.Name.ToLower().Contains(name.ToLower()), new string[] { },take:10);
+            var diseases=unitOfWork.Diseases.FindAll(dis => dis.Name.ToLower().StartsWith(name.ToLower()), new string[] { },take:10);
             return Ok(diseases);
             
         }

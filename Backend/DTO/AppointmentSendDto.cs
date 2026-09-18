@@ -4,7 +4,7 @@ namespace Homecare.DTO
 {
     public class AppointmentSendDto
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         public DateTime AppointmentDate { get; set; }
 
         [Required]

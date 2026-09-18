@@ -37,7 +37,7 @@ namespace Homecare.Controllers
             {
                 return NotFound("Wrong ID");
             }
-            List<MedicationSendAndCreateDto> meds=null;
+            List<MedicationSendAndCreateDto> ? meds=null;
             string pdf = "";
             if (AppointmentDB.Report is not null)
             {
@@ -225,13 +225,13 @@ namespace Homecare.Controllers
         {
             var old = await unitOfWork.Appointments.FindAsync(app=>app.Id==id,new string[] { });
             if (old is null) return NotFound("Wrong ID");
-            old.MeetingAddress = updated.MeetingAddress;
+            old.MeetingAddress = updated.MeetingAddress!;
             old.StartTime = updated.StartTime;
             old.EndTime = updated.EndTime;
             old.AppointmentDate = updated.AppointmentDate;
             old.PatientId = updated.patientId;
             old.PhysicianId = updated.PhysicianId;
-            old.PhysicianNotes = updated.PhysicianNotes;
+            old.PhysicianNotes = updated.PhysicianNotes!;
             unitOfWork.Appointments.Update(old);
             await unitOfWork.SaveDbAsync();
             return CreatedAtAction(nameof(GetAppointment), routeValues: new { id = old.Id }, updated);

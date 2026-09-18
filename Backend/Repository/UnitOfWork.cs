@@ -16,8 +16,7 @@ namespace Homecare.Repository
         public IRepository<Disease> Diseases { get;private set; }
         public IRepository<PatientDisease> PatientDiseases { get;private set; }
         public IRepository<Feedback> Feedbacks { get;private set; }
-        public IRepository<DicomFile> DicomFiles { get; private set; }
-
+       
      
 
         public UnitOfWork(ApplicationDbContext context)
@@ -32,7 +31,7 @@ namespace Homecare.Repository
             Diseases = new Repository<Disease>(context);
             PatientDiseases = new Repository<PatientDisease>(context);
             Feedbacks = new Repository<Feedback>(context);
-            DicomFiles = new Repository<DicomFile>(context);
+          
            
         }
         public async Task<int> SaveDbAsync()

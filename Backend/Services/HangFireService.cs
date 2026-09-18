@@ -1,6 +1,6 @@
 ﻿using Hangfire;
 using Homecare.Model;
-using Homecare.Repository;
+using Homecare.Repository.Interfaces;
 using Microsoft.Identity.Client;
 
 namespace Homecare.Services
@@ -18,11 +18,12 @@ namespace Homecare.Services
             this.messagingService = messagingService;
             logger = _logger;
         }
+        
         public void CheckMedicaitions()
         {
             var now = TimeOnly.FromDateTime(DateTime.Now);
              
-            var medications = unitOfWork.Medications.FindAll(md => true, new string[] { nameof(Medication.Patient) }).ToList();
+            var medications = unitOfWork.Medications.FindAll(md => true, new string[] { nameof(Medication.Patient) });
             logger.LogInformation($"At {now} Found: ");
             foreach (var medication in medications)
             {

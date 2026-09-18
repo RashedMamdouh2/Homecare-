@@ -18,15 +18,15 @@ namespace Homecare.Controllers
     {
         private readonly IUnitOfWork unitOfWork;
         private readonly ImageServices imageServices;
-        private readonly LinkGenerator linkGenerator;
+        
 
-        public PhysicianController(IUnitOfWork unitOfWork, ImageServices imageServices, LinkGenerator linkGenerator)
+        public PhysicianController(IUnitOfWork unitOfWork, ImageServices imageServices)
         {
             this.unitOfWork = unitOfWork;
             this.imageServices = imageServices;
-            this.linkGenerator = linkGenerator;
+           
         }
-        [HttpGet("GetPhysician/{id:int}")]
+        [HttpGet("{id:int}")]
         public async Task<IActionResult> GetPhysician(int id)
         {
             var PhysicianDB = await unitOfWork.Physicians.FindAsync(ph=>ph.Id==id,new string[] {nameof(Model.Physician.Specialization)});
@@ -46,7 +46,7 @@ namespace Homecare.Controllers
             };
             return Ok(Physician);
         }
-        [HttpGet("GetAllPhysicians")]
+        [HttpGet]
         public IActionResult GetAllPhysicians()
         {
             
@@ -62,11 +62,11 @@ namespace Homecare.Controllers
             });
             return Ok(Physicians);
         }
-        [HttpGet("GetPhysicianAppointments/{physicianId:int}")]
+        [HttpGet("{physicianId:int}/Appointments")]
   
         public  IActionResult GetAppointment(int physicianId)
         {
-            var authUsrPhysicianId = User.Claims.FirstOrDefault(c => c.Type == "PhysicianId").Value ;
+            var authUsrPhysicianId = User.Claims.FirstOrDefault(c => c.Type == "PhysicianId")!.Value ;
             if (authUsrPhysicianId != physicianId.ToString()) return Forbid();
             var AppointmentDB = unitOfWork.Appointments.FindAll(app => app.PhysicianId == physicianId, new string[] { nameof(Model.Appointment.Report), nameof(Patient), nameof(Physician) }).ToList();
 
@@ -90,7 +90,7 @@ namespace Homecare.Controllers
             });
             return Ok(Appointments);
         }
-        [HttpGet("FreeAppointments/Day/{physicianId:int}")]
+        [HttpGet("{physicianId:int}/free-slots")]
         public async Task<IActionResult> GetFreeTimes(int physicianId, [FromQuery] DateOnly date)
         {
            var physician= await unitOfWork.Physicians.FindAsync(phy => phy.Id == physicianId, new string[] { });
@@ -98,7 +98,7 @@ namespace Homecare.Controllers
             var availableHoursAtThisDay = physician.AvailableTimeTable.Where(datetime => date.Equals(new DateOnly(datetime.Year, datetime.Month, datetime.Day))).Select(datetime => new TimeOnly(datetime.Hour, datetime.Minute, datetime.Second));
             return Ok(availableHoursAtThisDay);
         }
-        [HttpGet("feedbacks/{physicianId:int}")]
+        [HttpGet("{physicianId:int}/feedbacks")]
         [AllowAnonymous]
         public IActionResult GetPhysicanFeedbacks(int physicianId)
         {
@@ -116,7 +116,7 @@ namespace Homecare.Controllers
 
             }));
         }
-        [HttpGet("GetMyPatients/{physicianId:int}")]
+        [HttpGet("{physicianId:int}/Patients")]
         public async Task<IActionResult> GetPatientsOfPhysician(int physicianId, int pageNumber)
         {
 
@@ -150,7 +150,7 @@ namespace Homecare.Controllers
             return Ok();
         }
       
-        [HttpPost("FreeAppointments/{physicianId:int}")]
+        [HttpPost("{physicianId:int}/free-slots")]
         
         public async Task<IActionResult> AddPhysicianFreeAppointments(int physicianId,[FromBody] List<DateTime>freeTimes)
         {
@@ -163,7 +163,7 @@ namespace Homecare.Controllers
             return CreatedAtAction(actionName: nameof(GetAppointment), routeValues: new { physicianId = physicianId },value:new { Avaliable=freeTimes });
 
         }
-        [HttpPost("feedbacks/{physicianId:int}")]
+        [HttpPost("{physicianId:int}/feedbacks")]
         public async Task<IActionResult> AddFeedbackToPhysician(int physicianId,FeedbackDto feedback)
         {
             var patient =await unitOfWork.Patients.GetByIdAsync(feedback.PatientId);
@@ -210,7 +210,7 @@ namespace Homecare.Controllers
         {
             var Physician = await unitOfWork.Physicians.GetByIdAsync(id);
             if (Physician is null) return NotFound("Wrong ID");
-            unitOfWork.Physicians.Delete(Physician.Id);
+            await unitOfWork.Physicians.DeleteAsync(Physician.Id);
             await unitOfWork.SaveDbAsync();
             return Ok();
         }

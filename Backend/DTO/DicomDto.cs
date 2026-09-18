@@ -1,3 +1,4 @@
+using Homecare.Validation;
 using System.ComponentModel.DataAnnotations;
 
 namespace Homecare.DTO
@@ -11,6 +12,8 @@ namespace Homecare.DTO
         public int PhysicianId { get; set; }
 
         [Required]
+        [FileValidation(new string[] { "application/octet-stream", "application/dicom" }, 2*1024)]
+
         public IFormFile File { get; set; }
 
         public string Notes { get; set; }

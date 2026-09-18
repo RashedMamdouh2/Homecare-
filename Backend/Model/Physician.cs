@@ -1,10 +1,16 @@
 ﻿using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Homecare.Model
 {
     public class Physician {
         public int Id { get; set; }
+
+        [ForeignKey(nameof(User))]
+        public string UserId{get;set;}
+        public ApplicationUser User {get;set;}
+        
         [Required]
         public string Name { get; set; }
 

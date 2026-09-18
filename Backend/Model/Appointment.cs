@@ -5,7 +5,7 @@ namespace Homecare.Model
 {
     public class Appointment
     {
-        public Guid Id { get; set; }
+        public int Id { get; set; }
         [Required]
         public DateTime AppointmentDate { get; set; }
         [Required]
@@ -28,9 +28,11 @@ namespace Homecare.Model
         public AppointmentStatus Status { get; set; }
         public Appointment()
         {
-            Id = Guid.NewGuid();
+            
             Status = AppointmentStatus.Pending;
         }
+
+        
     }
     public enum AppointmentStatus
     {

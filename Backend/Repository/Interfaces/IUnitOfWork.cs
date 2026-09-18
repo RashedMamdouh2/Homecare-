@@ -13,7 +13,6 @@ namespace Homecare.Repository.Interfaces
         public IRepository<Disease> Diseases { get;}
         public IRepository<PatientDisease> PatientDiseases { get;}
         public IRepository<Feedback> Feedbacks { get;}
-        public IRepository<DicomFile> DicomFiles { get; }
 
 
 

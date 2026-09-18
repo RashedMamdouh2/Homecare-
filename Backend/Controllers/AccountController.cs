@@ -137,7 +137,7 @@ namespace Homecare.Controllers
             {
                 var roles = await userManager.GetRolesAsync(DbUser);
                 var claims = new List<Claim> {
-                            new Claim(ClaimTypes.Name, DbUser.UserName),
+                            new Claim(ClaimTypes.Name, DbUser.UserName!),
                             new Claim(ClaimTypes.NameIdentifier, DbUser.Id),
                             new Claim(JwtRegisteredClaimNames.Exp,DateTime.UtcNow.AddMinutes(10).ToString()),
                             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),

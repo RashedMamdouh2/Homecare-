@@ -18,7 +18,7 @@ namespace Homecare.Model
         public string Pdf { get; set; }
 
         [ForeignKey(nameof(Appointment))]
-        public Guid AppointmentId { get; set; }
+        public int AppointmentId { get; set; }
         public Appointment Appointment { get; set; }
         
     }

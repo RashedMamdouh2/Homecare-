@@ -1,9 +1,11 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Homecare.Validation;
+using System.ComponentModel.DataAnnotations;
 
 namespace Homecare.DTO
 {
     public class AppointmentCreateDto
     {
+        [FutureDate]
         public DateTime AppointmentDate { get; set; }
 
         [Required]
@@ -13,8 +15,7 @@ namespace Homecare.DTO
         public TimeOnly EndTime { get; set; }
         public int patientId { get; set; }
         public int PhysicianId { get; set; }
-        public string MeetingAddress { get; set; }
-        [Required]
-        public string PhysicianNotes { get; set; }
+        public string? MeetingAddress { get; set; } 
+        public string? PhysicianNotes { get; set; }
     }
 }
