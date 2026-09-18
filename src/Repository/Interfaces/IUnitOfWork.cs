@@ -1,0 +1,23 @@
+﻿using Homecare.Model;
+
+namespace Homecare.Repository.Interfaces
+{
+    public interface IUnitOfWork:IDisposable
+    {
+        public IRepository<Patient> Patients { get;  }
+        public IRepository<Physician> Physicians { get;  }
+        public IRepository<Appointment> Appointments { get; }
+        public IRepository<Medication> Medications { get;  }
+        public IRepository<Report> Reports { get;  }
+        public IRepository<Specialization> Specializations { get;}
+        public IRepository<Disease> Diseases { get;}
+        public IRepository<PatientDisease> PatientDiseases { get;}
+        public IRepository<Feedback> Feedbacks { get;}
+        public IRepository<DicomFile> DicomFiles { get; }
+
+
+
+
+        public Task<int> SaveDbAsync();
+    }
+}
